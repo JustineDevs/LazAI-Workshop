@@ -28,6 +28,7 @@ const Navbar = () => {
         { name: 'Home', href: '/', current: location.pathname === '/' },
         { name: 'Marketplace', href: '/marketplace', current: location.pathname === '/marketplace' },
         { name: 'Create', href: '/create', current: location.pathname === '/create' },
+        { name: 'LazAI', href: '/lazai', current: location.pathname === '/lazai' },
     ];
 
     const handleConnectWallet = async () => {

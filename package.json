@@ -18,7 +18,14 @@
     "lint:fix": "eslint src/ tests/ contracts/ --ext .js,.ts --fix",
     "format": "prettier --write src/ tests/ contracts/",
     "deploy:contracts": "hardhat run scripts/deploy.js --network lazchain",
-    "verify:contracts": "hardhat verify --network lazchain"
+    "deploy:lazai": "hardhat run scripts/deploy-lazai.js --network lazchain",
+    "deploy:production": "hardhat run scripts/deploy-production.js --network lazchain",
+    "verify:contracts": "hardhat verify --network lazchain",
+    "test:contracts": "hardhat test",
+    "health-check": "node scripts/health-check.js",
+    "monitor": "node scripts/monitor.js monitor",
+    "monitor:report": "node scripts/monitor.js report",
+    "check-balance": "hardhat run scripts/check-balance.js --network lazchain"
   },
   "keywords": [
     "nft",

@@ -1,4 +1,5 @@
 const BlockchainService = require('../services/BlockchainService');
+const { ethers } = require('ethers');
 
 class BlockchainController {
     constructor() {
@@ -35,29 +36,7 @@ class BlockchainController {
                 data: {
                     address,
                     balance: balance,
-                    unit: 'ETH'
-                }
-            });
-
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    /**
-     * Get DAT token balance for an address
-     */
-    async getDATBalance(req, res, next) {
-        try {
-            const { address } = req.params;
-            const balance = await this.blockchainService.getDATTokenBalance(address);
-
-            res.json({
-                success: true,
-                data: {
-                    address,
-                    balance: balance,
-                    unit: 'DAT'
+                    unit: 'LAZAI'
                 }
             });
 
@@ -71,18 +50,7 @@ class BlockchainController {
      */
     async getContractInfo(req, res, next) {
         try {
-            const { address } = req.params;
-            
-            // Get basic contract info
-            const provider = this.blockchainService.getProvider();
-            const code = await provider.getCode(address);
-            
-            const contractInfo = {
-                address,
-                isContract: code !== '0x',
-                codeSize: code.length,
-                network: await this.blockchainService.getNetworkInfo()
-            };
+            const contractInfo = await this.blockchainService.getContractInfo();
 
             res.json({
                 success: true,
@@ -95,36 +63,16 @@ class BlockchainController {
     }
 
     /**
-     * Approve DAT tokens for spending
+     * Get Data NFT information
      */
-    async approveTokens(req, res, next) {
+    async getDataNFT(req, res, next) {
         try {
-            const { spender, amount } = req.body;
+            const { tokenId } = req.params;
+            const dataNFT = await this.blockchainService.getDataNFT(tokenId);
 
-            if (!spender || !amount) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Spender address and amount are required'
-                });
-            }
-
-            const datToken = this.blockchainService.getDATTokenContract();
-            if (!datToken) {
-                return res.status(500).json({
-                    success: false,
-                    error: 'DAT token contract not available'
-                });
-            }
-
-            // This would require wallet integration for actual transaction
-            // For now, return the approval data
             res.json({
                 success: true,
-                data: {
-                    spender,
-                    amount,
-                    message: 'Approval transaction data generated. Use MetaMask to sign the transaction.'
-                }
+                data: dataNFT
             });
 
         } catch (error) {
@@ -133,29 +81,19 @@ class BlockchainController {
     }
 
     /**
-     * Get token allowance
+     * Check if address owns a token
      */
-    async getAllowance(req, res, next) {
+    async checkOwnership(req, res, next) {
         try {
-            const { owner, spender } = req.params;
-
-            const datToken = this.blockchainService.getDATTokenContract();
-            if (!datToken) {
-                return res.status(500).json({
-                    success: false,
-                    error: 'DAT token contract not available'
-                });
-            }
-
-            const allowance = await datToken.allowance(owner, spender);
+            const { tokenId, address } = req.params;
+            const isOwner = await this.blockchainService.isOwner(tokenId, address);
 
             res.json({
                 success: true,
                 data: {
-                    owner,
-                    spender,
-                    allowance: allowance.toString(),
-                    formattedAllowance: ethers.utils.formatEther(allowance)
+                    tokenId,
+                    address,
+                    isOwner
                 }
             });
 
@@ -163,6 +101,7 @@ class BlockchainController {
             next(error);
         }
     }
+
 
     /**
      * Get transaction details
@@ -264,14 +203,16 @@ class BlockchainController {
     async getGasPrice(req, res, next) {
         try {
             const provider = this.blockchainService.getProvider();
-            const gasPrice = await provider.getGasPrice();
+            const feeData = await provider.getFeeData();
 
             res.json({
                 success: true,
                 data: {
-                    gasPrice: gasPrice.toString(),
-                    gasPriceGwei: ethers.utils.formatUnits(gasPrice, 'gwei'),
-                    gasPriceEther: ethers.utils.formatEther(gasPrice)
+                    gasPrice: feeData.gasPrice?.toString() || '0',
+                    gasPriceGwei: feeData.gasPrice ? ethers.formatUnits(feeData.gasPrice, 'gwei') : '0',
+                    gasPriceEther: feeData.gasPrice ? ethers.formatEther(feeData.gasPrice) : '0',
+                    maxFeePerGas: feeData.maxFeePerGas?.toString(),
+                    maxPriorityFeePerGas: feeData.maxPriorityFeePerGas?.toString()
                 }
             });
 

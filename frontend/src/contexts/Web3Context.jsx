@@ -24,18 +24,26 @@ export const Web3Provider = ({ children }) => {
 
     // Contract addresses (these would come from environment variables in production)
     const CONTRACT_ADDRESSES = {
-        DataStreamNFT: process.env.REACT_APP_DATASTREAM_NFT_ADDRESS || '0x...',
-        DATToken: process.env.REACT_APP_DAT_TOKEN_ADDRESS || '0x...',
+        DataStreamNFT: process.env.REACT_APP_DATASTREAM_NFT_ADDRESS || '0x1868C3935B5A548C90d5660981FB866160382Da7',
+        DATToken: process.env.REACT_APP_DAT_TOKEN_ADDRESS || '0x...', // Not used for ETH payments
     };
 
-    // Contract ABIs (simplified for now)
+    // Contract ABIs (updated for deployed contract)
     const CONTRACT_ABIS = {
         DataStreamNFT: [
-            "function mintDataStream(string memory ipfsHash, string memory metadataHash, uint256 queryPrice, address to) external returns (uint256)",
-            "function executeQuery(uint256 tokenId) external",
-            "function getDataStream(uint256 tokenId) external view returns (tuple(string ipfsHash, string metadataHash, uint256 queryPrice, address creator, uint256 totalQueries, uint256 totalEarnings, bool isActive, uint256 createdAt))",
-            "function getTotalTokens() external view returns (uint256)",
-            "function tokenURI(uint256 tokenId) external view returns (string memory)"
+            "function mintDataNFT(string memory tokenURI, uint256 queryPriceInWei) external returns (uint256)",
+            "function payForQuery(uint256 tokenId) external payable",
+            "function updateQueryPrice(uint256 tokenId, uint256 newPriceInWei) external",
+            "function dataNFTs(uint256 tokenId) external view returns (address creator, uint256 queryPrice, uint256 totalQueries, uint256 totalEarned)",
+            "function ownerOf(uint256 tokenId) external view returns (address)",
+            "function tokenURI(uint256 tokenId) external view returns (string memory)",
+            "function name() external view returns (string memory)",
+            "function symbol() external view returns (string memory)",
+            "function platformTreasury() external view returns (address)",
+            "function platformFeeBps() external view returns (uint256)",
+            "event DataNFTMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice)",
+            "event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount)",
+            "event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice)"
         ],
         DATToken: [
             "function transfer(address to, uint256 amount) external returns (bool)",
@@ -44,6 +52,19 @@ export const Web3Provider = ({ children }) => {
             "function balanceOf(address account) external view returns (uint256)",
             "function allowance(address owner, address spender) external view returns (uint256)"
         ]
+    };
+
+    // Network configuration
+    const LAZAI_NETWORK = {
+        chainId: '0x20A5A', // 133718 in hex
+        chainName: 'LazAI Testnet',
+        nativeCurrency: {
+            name: 'LAZAI',
+            symbol: 'LAZAI',
+            decimals: 18,
+        },
+        rpcUrls: ['https://testnet.lazai.network'],
+        blockExplorerUrls: ['https://testnet-explorer.lazai.network'],
     };
 
     // Check if MetaMask is installed
@@ -144,14 +165,27 @@ export const Web3Provider = ({ children }) => {
             });
         } catch (error) {
             if (error.code === 4902) {
-                // Chain not added to MetaMask
-                toast.error('Please add the network to MetaMask');
+                // Chain not added to MetaMask, add it
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [LAZAI_NETWORK],
+                    });
+                } catch (addError) {
+                    console.error('Error adding network:', addError);
+                    toast.error('Failed to add LazAI network to MetaMask');
+                }
             } else {
                 console.error('Error switching network:', error);
                 toast.error('Failed to switch network');
             }
         }
     }, []);
+
+    // Switch to LazAI network specifically
+    const switchToLazAINetwork = useCallback(async () => {
+        await switchNetwork(133718);
+    }, [switchNetwork]);
 
     // Get contract instance
     const getContract = useCallback((contractName) => {
@@ -237,12 +271,14 @@ export const Web3Provider = ({ children }) => {
         connectWallet,
         disconnectWallet,
         switchNetwork,
+        switchToLazAINetwork,
         getContract,
         updateBalances,
         
         // Constants
         CONTRACT_ADDRESSES,
         CONTRACT_ABIS,
+        LAZAI_NETWORK,
     };
 
     return (

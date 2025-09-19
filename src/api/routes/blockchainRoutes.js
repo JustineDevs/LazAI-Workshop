@@ -29,43 +29,31 @@ router.get('/balance/:address',
 );
 
 /**
- * @route GET /api/v1/blockchain/dat-balance/:address
- * @desc Get DAT token balance for an address
+ * @route GET /api/v1/blockchain/contract-info
+ * @desc Get DataStreamNFT contract information
  * @access Public
  */
-router.get('/dat-balance/:address',
-    ValidationMiddleware.validateEthereumAddress,
-    blockchainController.getDATBalance
-);
-
-/**
- * @route GET /api/v1/blockchain/contract/:address
- * @desc Get contract information
- * @access Public
- */
-router.get('/contract/:address',
-    ValidationMiddleware.validateEthereumAddress,
+router.get('/contract-info',
     blockchainController.getContractInfo
 );
 
 /**
- * @route POST /api/v1/blockchain/approve
- * @desc Approve DAT tokens for spending
- * @access Private
+ * @route GET /api/v1/blockchain/data-nft/:tokenId
+ * @desc Get Data NFT information
+ * @access Public
  */
-router.post('/approve',
-    AuthMiddleware.authenticate,
-    blockchainController.approveTokens
+router.get('/data-nft/:tokenId',
+    blockchainController.getDataNFT
 );
 
 /**
- * @route GET /api/v1/blockchain/allowance/:owner/:spender
- * @desc Get token allowance
+ * @route GET /api/v1/blockchain/ownership/:tokenId/:address
+ * @desc Check if address owns a token
  * @access Public
  */
-router.get('/allowance/:owner/:spender',
+router.get('/ownership/:tokenId/:address',
     ValidationMiddleware.validateEthereumAddress,
-    blockchainController.getAllowance
+    blockchainController.checkOwnership
 );
 
 /**

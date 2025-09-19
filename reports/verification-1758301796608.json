@@ -1,0 +1,23 @@
+{
+  "contractAddress": "0x1868C3935B5A548C90d5660981FB866160382Da7",
+  "network": {
+    "name": "lazchain",
+    "chainId": 133718,
+    "blockNumber": 9646498
+  },
+  "contract": {
+    "name": "DataStreamNFT",
+    "symbol": "DAT",
+    "platformTreasury": "0xbadF2152017e26518140d7C8827BD83e2cA79f15",
+    "platformFeeBps": "250",
+    "owner": "0xbadF2152017e26518140d7C8827BD83e2cA79f15"
+  },
+  "verification": {
+    "contractDeployed": true,
+    "constructorCorrect": true,
+    "networkCorrect": true,
+    "abiComplete": false
+  },
+  "timestamp": "2025-09-19T17:09:56.608Z",
+  "status": "ISSUES_DETECTED"
+}

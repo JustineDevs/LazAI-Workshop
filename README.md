@@ -95,6 +95,8 @@ graph TB
 - ⛓️ **Lazchain** blockchain for smart contracts
 - 💰 **Real-time micropayments** for data usage
 - 🔄 **Secondary market** trading capabilities
+- 🤖 **LazAI Integration** for encrypted data upload and AI inference
+- 🪙 **Data Anchoring Tokens (DATs)** for privacy-preserving data monetization
 
 ## 🛠️ Technical Stack
 
@@ -108,6 +110,8 @@ graph TB
 | **Frontend** | React + Tailwind CSS | Responsive user interface |
 | **SDK** | JavaScript SDK | Data NFT minting & query metering |
 | **Development** | Hardhat + Ethers.js | Smart contract development |
+| **AI Integration** | LazAI/Alith | Encrypted data upload & AI inference |
+| **Data Privacy** | End-to-end encryption | Privacy-preserving data monetization |
 
 ## 🎮 User Journey
 
@@ -187,9 +191,18 @@ npm run dev
 ### Quick Start
 
 1. **Connect Wallet**: Use MetaMask to connect to Lazchain network
-2. **Upload Data**: Upload your dataset to Pinata IPFS
+2. **Upload Data**: Upload your dataset to Pinata IPFS or use LazAI integration
 3. **Mint NFT**: Create your DataStreamNFT with custom pricing
 4. **Start Earning**: AI queries will trigger automatic micropayments
+
+### LazAI Integration
+
+For advanced privacy-preserving data monetization:
+
+1. **Setup Python Environment**: Follow the [LazAI Integration Guide](docs/LAZAI_INTEGRATION.md)
+2. **Upload Encrypted Data**: Use LazAI/Alith to upload encrypted data to IPFS
+3. **Mint DAT**: Create Data Anchoring Tokens for your encrypted data
+4. **Run AI Inference**: Query your data using AI models while maintaining privacy
 
 ## 📊 Roadmap
 

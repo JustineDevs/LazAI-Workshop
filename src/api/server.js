@@ -13,6 +13,7 @@ const dataStreamRoutes = require('./routes/dataStreamRoutes');
 const userRoutes = require('./routes/userRoutes');
 const ipfsRoutes = require('./routes/ipfsRoutes');
 const blockchainRoutes = require('./routes/blockchainRoutes');
+const lazaiRoutes = require('./routes/lazaiRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -91,6 +92,7 @@ class Server {
         this.app.use('/api/v1/users', userRoutes);
         this.app.use('/api/v1/ipfs', ipfsRoutes);
         this.app.use('/api/v1/blockchain', blockchainRoutes);
+        this.app.use('/api/lazai', lazaiRoutes);
 
         // 404 handler
         this.app.use('*', (req, res) => {

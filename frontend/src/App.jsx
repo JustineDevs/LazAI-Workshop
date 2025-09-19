@@ -1,6 +1,11 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Toaster } from 'react-hot-toast';
+
+// Context Providers
+import { Web3Provider } from './contexts/Web3Context';
+import { AuthProvider } from './contexts/AuthContext';
 
 // Layout Components
 import Navbar from './components/layout/Navbar';
@@ -13,12 +18,13 @@ import MarketplacePage from './pages/MarketplacePage';
 import CreatePage from './pages/CreatePage';
 import ProfilePage from './pages/ProfilePage';
 import DataStreamDetailPage from './pages/DataStreamDetailPage';
+import LazAIPage from './pages/LazAIPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Hooks
 import { useAuth } from './contexts/AuthContext';
 
-function App() {
+function AppContent() {
     const { isLoading } = useAuth();
 
     if (isLoading) {
@@ -102,6 +108,19 @@ function App() {
                             } 
                         />
                         <Route 
+                            path="/lazai" 
+                            element={
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <LazAIPage />
+                                </motion.div>
+                            } 
+                        />
+                        <Route 
                             path="*" 
                             element={
                                 <motion.div
@@ -119,7 +138,18 @@ function App() {
             </main>
             
             <Footer />
+            <Toaster position="top-right" />
         </div>
+    );
+}
+
+function App() {
+    return (
+        <Web3Provider>
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
+        </Web3Provider>
     );
 }
 
