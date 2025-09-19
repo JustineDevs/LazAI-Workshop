@@ -1,10 +1,16 @@
+<div align="center">
+
+[![Thumbnail](https://github.com/JustineDevs/LazAI-Workshop/blob/main/Thumbnail.jpg)](https://github.com/JustineDevs/LazAI-Workshop)
+
 # 🚀 Build & Chill Workshop Series
 
 [![LazAI Network](https://img.shields.io/badge/LazAI-Network-blue?style=for-the-badge&logo=twitter)](https://x.com/LazAINetwork)
 [![Workshop Series](https://img.shields.io/badge/Workshop-Build%20%26%20Chill-green?style=for-the-badge)](https://x.com/LazAINetwork/status/1965700052405424351)
 [![Duration](https://img.shields.io/badge/Duration-6%20Weeks-orange?style=for-the-badge)](#)
 [![Rewards](https://img.shields.io/badge/Rewards-$2,000-purple?style=for-the-badge)](#rewards)
-[![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord)](https://discord.gg/lazai)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Community-7289da?style=for-the-badge&logo=discord)](https://discord.com/invite/nAtAEQbJpe)
+
+</div>
 
 ---
 
@@ -24,7 +30,7 @@ We're launching **"Build & Chill"**, a six-week workshop series designed to help
 ### Submission Process
 After every session, a submission form will be shared. You'll have until Sunday night to complete your task and submit it. This structure keeps the pace clear: join the workshop, build over the weekend, and share your work before the new week begins.
 
-> 💡 **Missed a session?** No worries! You can still catch up using the materials and guidance available in our dedicated Discord channel → [Join here](https://discord.gg/lazai)
+> 💡 **Missed a session?** No worries! You can still catch up using the materials and guidance available in our dedicated Discord channel → [Join here](https://discord.com/invite/nAtAEQbJpe)
 
 ## 📋 Participation Requirements
 
@@ -77,7 +83,7 @@ With a steady weekly rhythm, a supportive community, and rewards for effort, it'
 
 ## 🔗 Quick Links
 
-[![Join Discord](https://img.shields.io/badge/Join-Discord%20Community-7289da?style=flat-square&logo=discord)](https://discord.gg/lazai)
+[![Join Discord](https://img.shields.io/badge/Join-Discord%20Community-7289da?style=flat-square&logo=discord)](https://discord.com/invite/nAtAEQbJpe)
 [![Follow on X](https://img.shields.io/badge/Follow-LazAI%20Network-1da1f2?style=flat-square&logo=twitter)](https://x.com/LazAINetwork)
 [![Workshop Announcement](https://img.shields.io/badge/Read-Original%20Post-black?style=flat-square&logo=twitter)](https://x.com/LazAINetwork/status/1965700052405424351)
 
@@ -87,6 +93,6 @@ With a steady weekly rhythm, a supportive community, and rewards for effort, it'
 
 **Ready to start building? Join the LazAI community and let's grow together! 🚀**
 
-[![Join Now](https://img.shields.io/badge/Join%20Now-Build%20%26%20Chill-red?style=for-the-badge&logo=rocket)](https://discord.gg/lazai)
+[![Join Now](https://img.shields.io/badge/Join%20Now-Build%20%26%20Chill-red?style=for-the-badge&logo=rocket)](https://discord.com/invite/nAtAEQbJpe)
 
 </div>
