@@ -1,3 +1,5 @@
+<div align="center">
+
 ![DataStreamNFT](https://img.shields.io/badge/DataStreamNFT-Platform-blue?style=for-the-badge&logo=ethereum&logoColor=white)
 
 # DataStreamNFT
@@ -10,6 +12,8 @@
 [![Pinata](https://img.shields.io/badge/Storage-Pinata%20IPFS-orange?style=flat-square&logo=ipfs&logoColor=white)](https://pinata.cloud)
 [![MongoDB](https://img.shields.io/badge/Database-MongoDB-green?style=flat-square&logo=mongodb&logoColor=white)](https://mongodb.com)
 
+</div>
+
 ## 🎯 Problem Statement
 
 <div align="center">
@@ -20,14 +24,14 @@
 
 **Who's Affected:** Researchers, content creators, businesses supplying training data for AI and LLMs face revenue loss and lack transparency.
 
+</div>
+
 **Consequences:** 
 - Contributors lose incentive to share high-quality data
 - AI projects operate with limited, often poor data sources
 - Unsustainable data economy
 
 **Why Unsolved:** No on-chain query-metering or real-time micropayment solutions for data usage. Existing marketplaces do not integrate with AI query flows and lack composability with blockchain ownership models.
-
-</div>
 
 ## 🏗️ Architecture Overview
 
