@@ -1,6 +1,6 @@
 <div align="center">
 
-[![Thumbnail](https://github.com/JustineDevs/LazAI-Workshop/blob/main/Thumbnail.jpg)](https://github.com/JustineDevs/LazAI-Workshop)
+[![Thumbnail](https://github.com/JustineDevs/LazAI-Workshop/blob/main/thumbnail/Thumbnail.jpg)](https://github.com/JustineDevs/LazAI-Workshop)
 
 # 🚀 Build & Chill Workshop Series
 
