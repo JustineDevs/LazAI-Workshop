@@ -1,238 +1,118 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 /**
  * @title DataStreamNFT
- * @dev NFT contract for data monetization with query-based micropayments
+ * @dev NFT contract for data monetization with query-based micropayments using ETH
  * @author DataStreamNFT Team
  */
-contract DataStreamNFT is ERC721, Ownable, ReentrancyGuard {
-    using Counters for Counters.Counter;
+contract DataStreamNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
+    // Events
+    event DataNFTMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice);
+    event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount);
+    event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice);
+
+    struct DataNFT {
+        address creator;
+        uint256 queryPrice; // price in wei for one AI query on this data
+        uint256 totalQueries;
+        uint256 totalEarned;
+    }
+
+    // Mapping from tokenId to DataNFT details
+    mapping(uint256 => DataNFT) public dataNFTs;
 
     // Token ID counter
-    Counters.Counter private _tokenIdCounter;
+    uint256 private _tokenIdCounter;
 
-    // DAT token contract for payments
-    IERC20 public datToken;
+    // Platform fee in basis points (bps). E.g. 250 = 2.5%
+    uint256 public platformFeeBps = 250;
+    address public platformTreasury;
 
-    // DataStream structure
-    struct DataStream {
-        string ipfsHash;
-        string metadataHash;
-        uint256 queryPrice;
-        address creator;
-        uint256 totalQueries;
-        uint256 totalEarnings;
-        bool isActive;
-        uint256 createdAt;
+    constructor(address _platformTreasury) ERC721("DataStreamNFT", "DAT") Ownable(msg.sender) {
+        require(_platformTreasury != address(0), "Invalid treasury");
+        platformTreasury = _platformTreasury;
     }
 
-    // Mapping from token ID to DataStream
-    mapping(uint256 => DataStream) public dataStreams;
+    // Mint a new Data NFT with given metadata URI and query price
+    function mintDataNFT(string memory tokenURI, uint256 queryPriceInWei) external nonReentrant returns (uint256) {
+        require(queryPriceInWei > 0, "Query price must be positive");
 
-    // Mapping from creator to their token IDs
-    mapping(address => uint256[]) public creatorTokens;
+        _tokenIdCounter++;
+        uint256 newTokenId = _tokenIdCounter;
 
-    // Query events
-    event DataStreamCreated(
-        uint256 indexed tokenId,
-        address indexed creator,
-        string ipfsHash,
-        uint256 queryPrice
-    );
+        _safeMint(msg.sender, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
 
-    event QueryExecuted(
-        uint256 indexed tokenId,
-        address indexed querier,
-        uint256 paymentAmount,
-        uint256 totalQueries
-    );
-
-    event QueryPriceUpdated(
-        uint256 indexed tokenId,
-        uint256 newPrice
-    );
-
-    event DataStreamDeactivated(
-        uint256 indexed tokenId
-    );
-
-    // Modifiers
-    modifier onlyTokenOwner(uint256 tokenId) {
-        require(ownerOf(tokenId) == msg.sender, "Not token owner");
-        _;
-    }
-
-    modifier validTokenId(uint256 tokenId) {
-        require(_exists(tokenId), "Token does not exist");
-        _;
-    }
-
-    modifier activeDataStream(uint256 tokenId) {
-        require(dataStreams[tokenId].isActive, "DataStream inactive");
-        _;
-    }
-
-    /**
-     * @dev Constructor
-     * @param _datToken Address of the DAT token contract
-     */
-    constructor(address _datToken) ERC721("DataStreamNFT", "DSNFT") {
-        require(_datToken != address(0), "Invalid DAT token address");
-        datToken = IERC20(_datToken);
-    }
-
-    /**
-     * @dev Mint a new DataStream NFT
-     * @param ipfsHash IPFS hash of the data
-     * @param metadataHash IPFS hash of the metadata
-     * @param queryPrice Price per query in DAT tokens
-     * @param to Address to mint the NFT to
-     */
-    function mintDataStream(
-        string memory ipfsHash,
-        string memory metadataHash,
-        uint256 queryPrice,
-        address to
-    ) external onlyOwner returns (uint256) {
-        require(bytes(ipfsHash).length > 0, "Invalid IPFS hash");
-        require(queryPrice > 0, "Query price must be positive");
-
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
-
-        dataStreams[tokenId] = DataStream({
-            ipfsHash: ipfsHash,
-            metadataHash: metadataHash,
-            queryPrice: queryPrice,
-            creator: to,
+        dataNFTs[newTokenId] = DataNFT({
+            creator: msg.sender,
+            queryPrice: queryPriceInWei,
             totalQueries: 0,
-            totalEarnings: 0,
-            isActive: true,
-            createdAt: block.timestamp
+            totalEarned: 0
         });
 
-        creatorTokens[to].push(tokenId);
-        _mint(to, tokenId);
-
-        emit DataStreamCreated(tokenId, to, ipfsHash, queryPrice);
-        return tokenId;
+        emit DataNFTMinted(newTokenId, msg.sender, tokenURI, queryPriceInWei);
+        return newTokenId;
     }
 
-    /**
-     * @dev Execute a query on a DataStream
-     * @param tokenId Token ID of the DataStream
-     */
-    function executeQuery(uint256 tokenId) 
-        external 
-        nonReentrant 
-        validTokenId(tokenId) 
-        activeDataStream(tokenId) 
-    {
-        DataStream storage dataStream = dataStreams[tokenId];
-        uint256 paymentAmount = dataStream.queryPrice;
+    // Pay to query data NFT; triggers payment distribution
+    function payForQuery(uint256 tokenId) external payable nonReentrant {
+        require(ownerOf(tokenId) != address(0), "Token does not exist");
+        DataNFT storage nft = dataNFTs[tokenId];
 
-        // Transfer payment from querier to contract
-        require(
-            datToken.transferFrom(msg.sender, address(this), paymentAmount),
-            "Payment transfer failed"
-        );
+        require(msg.value >= nft.queryPrice, "Insufficient payment");
 
-        // Update DataStream statistics
-        dataStream.totalQueries += 1;
-        dataStream.totalEarnings += paymentAmount;
+        uint256 platformAmount = (msg.value * platformFeeBps) / 10000;
+        uint256 creatorAmount = msg.value - platformAmount;
 
-        // Transfer payment to creator
-        require(
-            datToken.transfer(dataStream.creator, paymentAmount),
-            "Creator payment failed"
-        );
+        // Transfer platform fee
+        (bool sentPlatform, ) = platformTreasury.call{value: platformAmount}("");
+        require(sentPlatform, "Platform fee transfer failed");
 
-        emit QueryExecuted(tokenId, msg.sender, paymentAmount, dataStream.totalQueries);
+        // Transfer remainder to creator
+        (bool sentCreator, ) = nft.creator.call{value: creatorAmount}("");
+        require(sentCreator, "Creator payment failed");
+
+        nft.totalQueries++;
+        nft.totalEarned += creatorAmount;
+
+        emit QueryPaid(tokenId, msg.sender, msg.value);
     }
 
-    /**
-     * @dev Update query price for a DataStream
-     * @param tokenId Token ID of the DataStream
-     * @param newPrice New query price in DAT tokens
-     */
-    function updateQueryPrice(uint256 tokenId, uint256 newPrice)
-        external
-        onlyTokenOwner(tokenId)
-        validTokenId(tokenId)
-    {
-        require(newPrice > 0, "Query price must be positive");
-        
-        dataStreams[tokenId].queryPrice = newPrice;
-        emit QueryPriceUpdated(tokenId, newPrice);
+    // Creator can update the query price of their NFT
+    function updateQueryPrice(uint256 tokenId, uint256 newPriceInWei) external {
+        require(ownerOf(tokenId) != address(0), "Token does not exist");
+        DataNFT storage nft = dataNFTs[tokenId];
+        require(msg.sender == nft.creator, "Only creator can update price");
+        require(newPriceInWei > 0, "Price must be positive");
+
+        nft.queryPrice = newPriceInWei;
+        emit QueryPriceUpdated(tokenId, newPriceInWei);
     }
 
-    /**
-     * @dev Deactivate a DataStream
-     * @param tokenId Token ID of the DataStream
-     */
-    function deactivateDataStream(uint256 tokenId)
-        external
-        onlyTokenOwner(tokenId)
-        validTokenId(tokenId)
-    {
-        dataStreams[tokenId].isActive = false;
-        emit DataStreamDeactivated(tokenId);
+    // Override _baseURI if needed to provide base metadata URI
+    function _baseURI() internal view override returns (string memory) {
+        return "ipfs://"; // Typically pointing to IPFS gateway or similar
     }
 
-    /**
-     * @dev Get DataStream information
-     * @param tokenId Token ID of the DataStream
-     * @return DataStream struct
-     */
-    function getDataStream(uint256 tokenId)
-        external
-        view
-        validTokenId(tokenId)
-        returns (DataStream memory)
-    {
-        return dataStreams[tokenId];
+    // Withdraw any stuck ETH by owner (platform)
+    function withdraw() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No funds to withdraw");
+        (bool sent, ) = msg.sender.call{value: balance}("");
+        require(sent, "Withdraw failed");
     }
 
-    /**
-     * @dev Get creator's token IDs
-     * @param creator Address of the creator
-     * @return Array of token IDs
-     */
-    function getCreatorTokens(address creator)
-        external
-        view
-        returns (uint256[] memory)
-    {
-        return creatorTokens[creator];
+    // Security: prevent accidental ETH transfers
+    receive() external payable {
+        revert("Direct ETH deposits not allowed");
     }
 
-    /**
-     * @dev Get total number of tokens minted
-     * @return Total token count
-     */
-    function getTotalTokens() external view returns (uint256) {
-        return _tokenIdCounter.current();
-    }
-
-    /**
-     * @dev Override tokenURI to return metadata
-     * @param tokenId Token ID
-     * @return Token URI
-     */
-    function tokenURI(uint256 tokenId)
-        public
-        view
-        override
-        validTokenId(tokenId)
-        returns (string memory)
-    {
-        return string(abi.encodePacked("ipfs://", dataStreams[tokenId].metadataHash));
+    fallback() external payable {
+        revert("Fallback called");
     }
 }

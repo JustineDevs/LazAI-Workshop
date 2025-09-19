@@ -4,7 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 
 /**
  * @title DAT Token
@@ -40,7 +40,7 @@ contract DATToken is ERC20, ERC20Burnable, Ownable, Pausable {
     /**
      * @dev Constructor
      */
-    constructor() ERC20("Data Access Token", "DAT") {
+    constructor() ERC20("Data Access Token", "DAT") Ownable(msg.sender) {
         // Mint initial supply to owner
         _mint(msg.sender, 100_000_000 * 10**18); // 100M tokens
     }
@@ -121,14 +121,14 @@ contract DATToken is ERC20, ERC20Burnable, Ownable, Pausable {
     }
 
     /**
-     * @dev Override _beforeTokenTransfer to add pausable functionality
+     * @dev Override _update to add pausable functionality
      */
-    function _beforeTokenTransfer(
+    function _update(
         address from,
         address to,
-        uint256 amount
+        uint256 value
     ) internal override whenNotPaused {
-        super._beforeTokenTransfer(from, to, amount);
+        super._update(from, to, value);
     }
 
     /**

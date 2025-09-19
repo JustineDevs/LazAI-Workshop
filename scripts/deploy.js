@@ -3,8 +3,7 @@ const { ethers } = require("hardhat");
 async function main() {
     console.log("Starting DataStreamNFT deployment...");
 
-    // Get the contract factories
-    const DATToken = await ethers.getContractFactory("DATToken");
+    // Get the contract factory
     const DataStreamNFT = await ethers.getContractFactory("DataStreamNFT");
 
     // Get the deployer account
@@ -12,60 +11,43 @@ async function main() {
     console.log("Deploying contracts with account:", deployer.address);
 
     // Check deployer balance
-    const balance = await deployer.getBalance();
-    console.log("Account balance:", ethers.utils.formatEther(balance), "ETH");
+    const balance = await ethers.provider.getBalance(deployer.address);
+    console.log("Account balance:", ethers.formatEther(balance), "ETH");
 
-    // Deploy DAT Token
-    console.log("\nDeploying DAT Token...");
-    const datToken = await DATToken.deploy();
-    await datToken.deployed();
-    console.log("DAT Token deployed to:", datToken.address);
-
-    // Deploy DataStreamNFT
+    // Deploy DataStreamNFT with platform treasury
     console.log("\nDeploying DataStreamNFT...");
-    const dataStreamNFT = await DataStreamNFT.deploy(datToken.address);
-    await dataStreamNFT.deployed();
-    console.log("DataStreamNFT deployed to:", dataStreamNFT.address);
+    const platformTreasury = deployer.address; // Use deployer as platform treasury for now
+    const dataStreamNFT = await DataStreamNFT.deploy(platformTreasury);
+    await dataStreamNFT.waitForDeployment();
+    console.log("DataStreamNFT deployed to:", await dataStreamNFT.getAddress());
 
     // Verify deployments
     console.log("\nVerifying deployments...");
     
-    const datTokenName = await datToken.name();
-    const datTokenSymbol = await datToken.symbol();
-    const datTokenTotalSupply = await datToken.totalSupply();
-    
     const dataStreamNFTName = await dataStreamNFT.name();
     const dataStreamNFTSymbol = await dataStreamNFT.symbol();
-    const dataStreamNFTTotalTokens = await dataStreamNFT.getTotalTokens();
+    const platformTreasuryAddress = await dataStreamNFT.platformTreasury();
+    const platformFeeBps = await dataStreamNFT.platformFeeBps();
 
     console.log("\n=== Deployment Summary ===");
-    console.log("DAT Token:");
-    console.log("  Address:", datToken.address);
-    console.log("  Name:", datTokenName);
-    console.log("  Symbol:", datTokenSymbol);
-    console.log("  Total Supply:", ethers.utils.formatEther(datTokenTotalSupply), "DAT");
-
-    console.log("\nDataStreamNFT:");
-    console.log("  Address:", dataStreamNFT.address);
+    console.log("DataStreamNFT:");
+    console.log("  Address:", await dataStreamNFT.getAddress());
     console.log("  Name:", dataStreamNFTName);
     console.log("  Symbol:", dataStreamNFTSymbol);
-    console.log("  Total Tokens:", dataStreamNFTTotalTokens.toString());
+    console.log("  Platform Treasury:", platformTreasuryAddress);
+    console.log("  Platform Fee:", platformFeeBps.toString(), "bps (", (Number(platformFeeBps) / 100).toString(), "%)");
 
     // Save deployment info
     const deploymentInfo = {
         network: await ethers.provider.getNetwork(),
         deployer: deployer.address,
         contracts: {
-            DATToken: {
-                address: datToken.address,
-                name: datTokenName,
-                symbol: datTokenSymbol,
-                totalSupply: datTokenTotalSupply.toString()
-            },
             DataStreamNFT: {
-                address: dataStreamNFT.address,
+                address: await dataStreamNFT.getAddress(),
                 name: dataStreamNFTName,
-                symbol: dataStreamNFTSymbol
+                symbol: dataStreamNFTSymbol,
+                platformTreasury: platformTreasuryAddress,
+                platformFeeBps: platformFeeBps.toString()
             }
         },
         timestamp: new Date().toISOString()
@@ -87,10 +69,11 @@ async function main() {
 
     // Instructions for next steps
     console.log("\n=== Next Steps ===");
-    console.log("1. Update your .env file with the contract addresses");
-    console.log("2. Verify contracts on block explorer (if applicable)");
-    console.log("3. Test the contracts with sample data");
-    console.log("4. Deploy frontend and connect to contracts");
+    console.log("1. Update your .env file with the contract address");
+    console.log("2. Verify contract on block explorer (if applicable)");
+    console.log("3. Test the contract with sample data");
+    console.log("4. Deploy frontend and connect to contract");
+    console.log("5. Set up platform treasury address for production");
 
     console.log("\nDeployment completed successfully!");
 }
