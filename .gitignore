@@ -185,3 +185,5 @@ docs/generated/
 # pnpm-lock.yaml
 
 rules/rules.mdc
+.env*
+.env.*
