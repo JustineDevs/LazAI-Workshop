@@ -3,11 +3,24 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 lerna-debug.log*
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
@@ -19,20 +32,24 @@ coverage/
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+# Grunt intermediate storage
 .grunt
 
-# Bower dependency directory (https://bower.io/)
+# Bower dependency directory
 bower_components
 
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (https://nodejs.org/api/addons.html)
+# Compiled binary addons
 build/Release
 
 # Dependency directories
+node_modules/
 jspm_packages/
+
+# TypeScript v1 declaration files
+typings/
 
 # TypeScript cache
 *.tsbuildinfo
@@ -42,9 +59,6 @@ jspm_packages/
 
 # Optional eslint cache
 .eslintcache
-
-# Optional stylelint cache
-.stylelintcache
 
 # Microbundle cache
 .rpt2_cache/
@@ -61,20 +75,16 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variable files
+# dotenv environment variables file
 .env
-.env.development.local
-.env.test.local
-.env.production.local
-.env.local
+.env.test
 
-# parcel-bundler cache (https://parceljs.org/)
+# parcel-bundler cache
 .cache
 .parcel-cache
 
 # Next.js build output
 .next
-out
 
 # Nuxt.js build / generate output
 .nuxt
@@ -84,32 +94,15 @@ dist
 .cache/
 public
 
-# Vuepress build output
-.vuepress/dist
+# Storybook build outputs
+.out
+.storybook-out
 
-# Serverless directories
-.serverless/
+# Temporary folders
+tmp/
+temp/
 
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# yarn v2
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-.pnp.*
-
-# IDE and Editor files
+# Editor directories and files
 .vscode/
 .idea/
 *.swp
@@ -125,65 +118,49 @@ public
 ehthumbs.db
 Thumbs.db
 
-# Logs
-logs
-*.log
+# Hardhat files
+cache/
+artifacts/
+deployments/
 
-# Temporary files
-tmp/
-temp/
+# Solidity files
+*.sol.bak
+
+# Test files
+test-results/
+coverage/
 
 # Build outputs
 build/
 dist/
-out/
-
-# Workshop specific files
-# Uncomment if you want to ignore workshop submissions
-# submissions/
-# week-*/submissions/
-
-# Personal notes and drafts
-notes.md
-draft.md
-TODO.md
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# Archive files
-*.zip
-*.tar.gz
-*.rar
 
 # Database files
 *.db
 *.sqlite
 *.sqlite3
 
-# Configuration files with sensitive data
-config.local.js
-config.local.json
-secrets.json
+# Backup files
+*.bak
+*.backup
 
-# Test files (uncomment if needed)
-# test-results/
-# coverage/
+# Lock files
+package-lock.json
+yarn.lock
 
-# Workshop materials that might be large
-# materials/
-# assets/large-files/
+# IDE files
+*.sublime-project
+*.sublime-workspace
 
-# Generated documentation
-docs/generated/
+# Local development
+.local/
+local/
 
-# Package manager lock files (uncomment if you want to ignore them)
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
+# Documentation build
+docs/build/
 
-rules/rules.mdc
-.env*
-.env.*
+# Generated files
+generated/
+
+# Project specific directories
+query-smart-contract/
+rules/

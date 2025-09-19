@@ -34,12 +34,3 @@ Users access their personal dashboard displaying query counts, accrued revenue f
 A visible help widget on-screen assists with FAQ, live chat, and onboarding tips.
 
 This flow gets new users from zero experience to data NFT ownership and query interaction in under 10 minutes, balancing education with action, and introducing core platform values early.
-
-[1](https://whatfix.com/blog/user-onboarding-examples/)
-[2](https://github.com/nextauthjs/next-auth/discussions/6583)
-[3](https://userpilot.com/blog/onboarding-user-flow-examples/)
-[4](https://www.youtube.com/watch?v=KcHp4RiGIos)
-[5](https://cxl.com/blog/6-user-onboarding-flows/)
-[6](https://www.reddit.com/r/iOSProgramming/comments/1iqvhav/what_do_people_typically_use_to_build_mobile/)
-[7](https://uxplanet.org/3-awesome-user-onboarding-flows-for-web-c8b1ec6a508a)
-[8](https://www.youtube.com/watch?v=vAN7kmpTdy4)

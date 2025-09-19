@@ -1,0 +1,639 @@
+Below is a foundational Solidity smart contract for DataStreamNFT on Lazchain featuring minting of data NFTs (DAT tokens), query-based micropayments, and basic royalty splits.
+
+File: DataStreamNFT.sol
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+// OpenZeppelin imports for security, ERC721 core, and ownership control
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract DataStreamNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
+    // Events
+    event DataNFTMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice);
+    event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount);
+    event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice);
+
+    struct DataNFT {
+        address creator;
+        uint256 queryPrice; // price in wei for one AI query on this data
+        uint256 totalQueries;
+        uint256 totalEarned;
+    }
+
+    // Mapping from tokenId to DataNFT details
+    mapping(uint256 => DataNFT) public dataNFTs;
+
+    // Token ID counter
+    uint256 private _tokenIdCounter;
+
+    // Platform fee in basis points (bps). E.g. 250 = 2.5%
+    uint256 public platformFeeBps = 250;
+    address public platformTreasury;
+
+    constructor(address _platformTreasury) ERC721("DataStreamNFT", "DAT") {
+        require(_platformTreasury != address(0), "Invalid treasury");
+        platformTreasury = _platformTreasury;
+    }
+
+    // Mint a new Data NFT with given metadata URI and query price
+    function mintDataNFT(string memory tokenURI, uint256 queryPriceInWei) external nonReentrant returns (uint256) {
+        require(queryPriceInWei > 0, "Query price must be positive");
+
+        _tokenIdCounter++;
+        uint256 newTokenId = _tokenIdCounter;
+
+        _safeMint(msg.sender, newTokenId);
+        _setTokenURI(newTokenId, tokenURI);
+
+        dataNFTs[newTokenId] = DataNFT({
+            creator: msg.sender,
+            queryPrice: queryPriceInWei,
+            totalQueries: 0,
+            totalEarned: 0
+        });
+
+        emit DataNFTMinted(newTokenId, msg.sender, tokenURI, queryPriceInWei);
+        return newTokenId;
+    }
+
+    // Pay to query data NFT; triggers payment distribution
+    function payForQuery(uint256 tokenId) external payable nonReentrant {
+        require(_exists(tokenId), "Token does not exist");
+        DataNFT storage nft = dataNFTs[tokenId];
+
+        require(msg.value >= nft.queryPrice, "Insufficient payment");
+
+        uint256 platformAmount = (msg.value * platformFeeBps) / 10000;
+        uint256 creatorAmount = msg.value - platformAmount;
+
+        // Transfer platform fee
+        (bool sentPlatform, ) = platformTreasury.call{value: platformAmount}("");
+        require(sentPlatform, "Platform fee transfer failed");
+
+        // Transfer remainder to creator
+        (bool sentCreator, ) = nft.creator.call{value: creatorAmount}("");
+        require(sentCreator, "Creator payment failed");
+
+        nft.totalQueries++;
+        nft.totalEarned += creatorAmount;
+
+        emit QueryPaid(tokenId, msg.sender, msg.value);
+    }
+
+    // Creator can update the query price of their NFT
+    function updateQueryPrice(uint256 tokenId, uint256 newPriceInWei) external {
+        require(_exists(tokenId), "Token does not exist");
+        DataNFT storage nft = dataNFTs[tokenId];
+        require(msg.sender == nft.creator, "Only creator can update price");
+        require(newPriceInWei > 0, "Price must be positive");
+
+        nft.queryPrice = newPriceInWei;
+        emit QueryPriceUpdated(tokenId, newPriceInWei);
+    }
+
+    // Override _baseURI if needed to provide base metadata URI
+    function _baseURI() internal view override returns (string memory) {
+        return "ipfs://"; // Typically pointing to IPFS gateway or similar
+    }
+
+    // Withdraw any stuck ETH by owner (platform)
+    function withdraw() external onlyOwner {
+        uint256 balance = address(this).balance;
+        require(balance > 0, "No funds to withdraw");
+        (bool sent, ) = msg.sender.call{value: balance}("");
+        require(sent, "Withdraw failed");
+    }
+
+    // Security: prevent accidental ETH transfers
+    receive() external payable {
+        revert("Direct ETH deposits not allowed");
+    }
+
+    fallback() external payable {
+        revert("Fallback called");
+    }
+}
+```
+
+Explanation and security practices:  
+- Uses OpenZeppelin’s audited ERC721URIStorage for metadata flexibility and Ownable for admin controls.  
+- NonReentrant modifiers on payable functions to prevent reentrancy attacks.  
+- Platform fee model with treasury address for sustainability.  
+- Explicit checks for valid token existence and caller permissions.  
+- Encodes query price in wei and validates positive values.  
+- No direct ETH acceptance through receive/fallback to avoid accidental losses.  
+- Withdraw method restricted to contract owner for stuck funds.  
+- Events to enable frontend tracking of minting and payments.
+
+Next steps: Develop hardhat deployment script, integration with Node.js backend to interact with this contract and Pinata IPFS storage, implement frontend React wallet connection and interface.
+
+Below is a full foundational approach with next steps including Hardhat deployment script, backend integration, and frontend wallet connection for the DataStreamNFT project.
+
+***
+
+**1. Hardhat Deployment Script**
+
+File: `deploy.js`
+
+```js
+// scripts/deploy.js
+const hre = require("hardhat");
+
+async function main() {
+  const [deployer] = await hre.ethers.getSigners();
+  console.log("Deploying contracts with account:", deployer.address);
+
+  const balance = await deployer.getBalance();
+  console.log("Account balance:", hre.ethers.utils.formatEther(balance));
+
+  const DataStreamNFT = await hre.ethers.getContractFactory("DataStreamNFT");
+  const platformTreasury = deployer.address; // change as needed
+  const datContract = await DataStreamNFT.deploy(platformTreasury);
+
+  await datContract.deployed();
+
+  console.log("DataStreamNFT deployed to:", datContract.address);
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});
+```
+
+**Hardhat config (partial):**  
+Add Lazchain testnet config (adjust RPC URL for Lazchain accordingly)
+
+```js
+module.exports = {
+  solidity: "0.8.20",
+  networks: {
+    lazchain: {
+      url: "https://rpc.lazchain.network",
+      accounts: [process.env.PRIVATE_KEY],
+      chainId: 1234, // example chain id
+    },
+  },
+};
+```
+
+***
+
+**2. Node.js Backend Integration**
+
+Key responsibilities:  
+- Handle Pinata IPFS uploads  
+- Mint DataStreamNFT by interacting with deployed contract  
+- Record metadata & query stats in MongoDB  
+
+Essential packages:  
+`ethers`, `pinata-sdk`, `express`, `mongoose`, `dotenv`
+
+Sample code to upload to Pinata and mint on-chain:
+
+```js
+// backend/mintDataNFT.js
+
+const { ethers } = require("ethers");
+const pinataSDK = require("@pinata/sdk");
+const pinata = pinataSDK(process.env.PINATA_API_KEY, process.env.PINATA_SECRET_API_KEY);
+
+const provider = new ethers.providers.JsonRpcProvider(process.env.LAZCHAIN_RPC);
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+const datContractAbi = require("./DataStreamNFTABI.json");
+const contractAddress = process.env.DAT_CONTRACT_ADDRESS;
+const datContract = new ethers.Contract(contractAddress, datContractAbi, wallet);
+
+async function uploadToPinata(fileBuffer, fileName) {
+  const result = await pinata.pinFileToIPFS(fileBuffer, { pinataMetadata: { name: fileName } });
+  return `ipfs://${result.IpfsHash}`;
+}
+
+async function mintDataNFT(metadataURI, queryPriceWei) {
+  const tx = await datContract.mintDataNFT(metadataURI, queryPriceWei);
+  const receipt = await tx.wait();
+  return receipt;
+}
+
+module.exports = { uploadToPinata, mintDataNFT };
+```
+
+***
+
+**3. Frontend React Wallet Connection**
+
+Use `ethers.js` and React hooks.
+
+```jsx
+// frontend/src/hooks/useWallet.js
+
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
+
+export function useWallet() {
+  const [provider, setProvider] = useState(null);
+  const [account, setAccount] = useState(null);
+
+  async function connectWallet() {
+    if (!window.ethereum) throw new Error("MetaMask not installed");
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+
+    await provider.send("eth_requestAccounts", []);
+    const signer = provider.getSigner();
+    const account = await signer.getAddress();
+
+    setProvider(provider);
+    setAccount(account);
+  }
+
+  useEffect(() => {
+    if (window.ethereum) {
+      window.ethereum.on("accountsChanged", (accounts) => {
+        setAccount(accounts[0] || null);
+      });
+    }
+  }, []);
+
+  return { provider, account, connectWallet };
+}
+```
+
+React component example:
+
+```jsx
+// frontend/src/components/WalletConnect.js
+
+import React from "react";
+import { useWallet } from "../hooks/useWallet";
+
+export default function WalletConnect() {
+  const { account, connectWallet } = useWallet();
+
+  return (
+    <div>
+      {account ? (
+        <p>Connected: {account}</p>
+      ) : (
+        <button onClick={connectWallet}>Connect Wallet</button>
+      )}
+    </div>
+  );
+}
+```
+
+***
+
+**Next Steps**  
+- Write express API endpoints for data upload, metadata registration, querying.  
+- Integrate MongoDB schemas to track users, minted NFTs, query stats.  
+- Build React pages for minting, marketplace browsing, query payment.  
+- Add unit, integration tests for smart contract and backend logic.  
+- Set up CI/CD for smart contract deployment on Lazchain testnet and production.  
+- Implement continuous monitoring and logging for payment events and contract interactions.  
+
+This setup provides a flexible, secure foundation to develop DataStreamNFT as an end-to-end Web3 data asset monetization platform on Lazchain with decentralized storage, tokenized ownership, and query-based micropayments.
+
+Here are detailed next steps with example code snippets to execute each for the DataStreamNFT project:
+
+***
+
+**1. Express API Endpoints**
+
+File: `backend/index.js`
+
+```js
+const express = require("express");
+const multer = require("multer");
+const { uploadToPinata, mintDataNFT } = require("./mintDataNFT");
+const mongoose = require("mongoose");
+const DataNFT = require("./models/DataNFT");
+require("dotenv").config();
+
+const app = express();
+app.use(express.json());
+const upload = multer();
+
+app.post("/upload", upload.single("file"), async (req, res) => {
+  try {
+    const ipfsUri = await uploadToPinata(req.file.buffer, req.file.originalname);
+    res.json({ ipfsUri });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/mint", async (req, res) => {
+  try {
+    const { metadataURI, queryPrice } = req.body;
+    // Mint on chain
+    const receipt = await mintDataNFT(metadataURI, queryPrice);
+    // Save to DB
+    const nft = new DataNFT({
+      tokenId: receipt.events[0].args.tokenId.toString(),
+      creator: receipt.from,
+      metadataURI,
+      queryPrice,
+    });
+    await nft.save();
+    res.json({ tokenId: nft.tokenId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/nfts", async (req, res) => {
+  const nfts = await DataNFT.find();
+  res.json(nfts);
+});
+
+const PORT = process.env.PORT || 4000;
+mongoose.connect(process.env.MONGO_URI).then(() => {
+  app.listen(PORT, () => console.log("Server running on port", PORT));
+});
+```
+
+***
+
+**2. MongoDB Schemas**
+
+File: `backend/models/DataNFT.js`
+
+```js
+const mongoose = require("mongoose");
+
+const dataNFTSchema = new mongoose.Schema({
+  tokenId: { type: String, unique: true, required: true },
+  creator: { type: String, required: true },
+  metadataURI: { type: String, required: true },
+  queryPrice: { type: Number, required: true },
+  totalQueries: { type: Number, default: 0 },
+  totalEarned: { type: Number, default: 0 },
+}, { timestamps: true });
+
+module.exports = mongoose.model("DataNFT", dataNFTSchema);
+```
+
+Additional user and query stats schemas can be added similarly.
+
+***
+
+**3. React Frontend Pages**
+
+Example mint page snippet:
+
+```jsx
+import React, { useState } from "react";
+import axios from "axios";
+
+function MintPage() {
+  const [file, setFile] = useState(null);
+  const [price, setPrice] = useState("");
+
+  const handleFileChange = (e) => setFile(e.target.files[0]);
+
+  const handleMint = async () => {
+    if (!file || !price) return alert("Upload file and set price");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await axios.post("/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    await axios.post("/mint", { metadataURI: data.ipfsUri, queryPrice: price });
+    alert("Minted Data NFT!");
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleFileChange} />
+      <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Query price in wei" />
+      <button onClick={handleMint}>Mint</button>
+    </div>
+  );
+}
+
+export default MintPage;
+```
+
+***
+
+**4. Tests**
+
+Write smart contract and backend tests using Hardhat, Mocha, Jest.
+
+Example Hardhat test snippet:
+
+```js
+describe("DataStreamNFT", function () {
+  it("Should mint and store metadata", async function () {
+    const [owner] = await ethers.getSigners();
+    const DataStreamNFT = await ethers.getContractFactory("DataStreamNFT");
+    const contract = await DataStreamNFT.deploy(owner.address);
+    await contract.deployed();
+
+    const tx = await contract.mintDataNFT("ipfs://sample-uri", ethers.utils.parseEther("0.01"));
+    await tx.wait();
+
+    const nft = await contract.dataNFTs(1);
+    expect(nft.creator).to.equal(owner.address);
+  });
+});
+```
+
+***
+
+**5. CI/CD**
+
+- Use GitHub Actions to automate:  
+  - Solidity linting and compilation  
+  - Run tests  
+  - Deploy to Lazchain testnet upon push to main branch  
+  - Deploy to mainnet on tagged releases
+
+***
+
+**6. Monitoring & Logging**
+
+- Use event listeners in backend to parse smart contract events (QueryPaid, DataNFTMinted) via ethers.js and log stats to MongoDB.  
+- Add alerts for failed payment transfers or contract call errors.
+
+***
+
+This covers the complete practical steps to build, deploy, and operate DataStreamNFT as a secure, extendable Web3 platform for tokenized AI data monetization.
+
+Here are detailed next steps with example code snippets to execute each for the DataStreamNFT project:
+
+***
+
+**1. Express API Endpoints**
+
+File: `backend/index.js`
+
+```js
+const express = require("express");
+const multer = require("multer");
+const { uploadToPinata, mintDataNFT } = require("./mintDataNFT");
+const mongoose = require("mongoose");
+const DataNFT = require("./models/DataNFT");
+require("dotenv").config();
+
+const app = express();
+app.use(express.json());
+const upload = multer();
+
+app.post("/upload", upload.single("file"), async (req, res) => {
+  try {
+    const ipfsUri = await uploadToPinata(req.file.buffer, req.file.originalname);
+    res.json({ ipfsUri });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/mint", async (req, res) => {
+  try {
+    const { metadataURI, queryPrice } = req.body;
+    // Mint on chain
+    const receipt = await mintDataNFT(metadataURI, queryPrice);
+    // Save to DB
+    const nft = new DataNFT({
+      tokenId: receipt.events[0].args.tokenId.toString(),
+      creator: receipt.from,
+      metadataURI,
+      queryPrice,
+    });
+    await nft.save();
+    res.json({ tokenId: nft.tokenId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/nfts", async (req, res) => {
+  const nfts = await DataNFT.find();
+  res.json(nfts);
+});
+
+const PORT = process.env.PORT || 4000;
+mongoose.connect(process.env.MONGO_URI).then(() => {
+  app.listen(PORT, () => console.log("Server running on port", PORT));
+});
+```
+
+***
+
+**2. MongoDB Schemas**
+
+File: `backend/models/DataNFT.js`
+
+```js
+const mongoose = require("mongoose");
+
+const dataNFTSchema = new mongoose.Schema({
+  tokenId: { type: String, unique: true, required: true },
+  creator: { type: String, required: true },
+  metadataURI: { type: String, required: true },
+  queryPrice: { type: Number, required: true },
+  totalQueries: { type: Number, default: 0 },
+  totalEarned: { type: Number, default: 0 },
+}, { timestamps: true });
+
+module.exports = mongoose.model("DataNFT", dataNFTSchema);
+```
+
+Additional user and query stats schemas can be added similarly.
+
+***
+
+**3. React Frontend Pages**
+
+Example mint page snippet:
+
+```jsx
+import React, { useState } from "react";
+import axios from "axios";
+
+function MintPage() {
+  const [file, setFile] = useState(null);
+  const [price, setPrice] = useState("");
+
+  const handleFileChange = (e) => setFile(e.target.files[0]);
+
+  const handleMint = async () => {
+    if (!file || !price) return alert("Upload file and set price");
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const { data } = await axios.post("/upload", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+
+    await axios.post("/mint", { metadataURI: data.ipfsUri, queryPrice: price });
+    alert("Minted Data NFT!");
+  };
+
+  return (
+    <div>
+      <input type="file" onChange={handleFileChange} />
+      <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Query price in wei" />
+      <button onClick={handleMint}>Mint</button>
+    </div>
+  );
+}
+
+export default MintPage;
+```
+
+***
+
+**4. Tests**
+
+Write smart contract and backend tests using Hardhat, Mocha, Jest.
+
+Example Hardhat test snippet:
+
+```js
+describe("DataStreamNFT", function () {
+  it("Should mint and store metadata", async function () {
+    const [owner] = await ethers.getSigners();
+    const DataStreamNFT = await ethers.getContractFactory("DataStreamNFT");
+    const contract = await DataStreamNFT.deploy(owner.address);
+    await contract.deployed();
+
+    const tx = await contract.mintDataNFT("ipfs://sample-uri", ethers.utils.parseEther("0.01"));
+    await tx.wait();
+
+    const nft = await contract.dataNFTs(1);
+    expect(nft.creator).to.equal(owner.address);
+  });
+});
+```
+
+***
+
+**5. CI/CD**
+
+- Use GitHub Actions to automate:  
+  - Solidity linting and compilation  
+  - Run tests  
+  - Deploy to Lazchain testnet upon push to main branch  
+  - Deploy to mainnet on tagged releases
+
+***
+
+**6. Monitoring & Logging**
+
+- Use event listeners in backend to parse smart contract events (QueryPaid, DataNFTMinted) via ethers.js and log stats to MongoDB.  
+- Add alerts for failed payment transfers or contract call errors.
+
+***
+
+This covers the complete practical steps to build, deploy, and operate DataStreamNFT as a secure, extendable Web3 platform for tokenized AI data monetization.

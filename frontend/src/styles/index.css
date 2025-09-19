@@ -1,0 +1,275 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+    
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
+@layer components {
+    /* Button Components */
+    .btn {
+        @apply inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background;
+    }
+    
+    .btn-primary {
+        @apply bg-primary-600 text-white hover:bg-primary-700 active:bg-primary-800;
+    }
+    
+    .btn-secondary {
+        @apply bg-secondary-100 text-secondary-900 hover:bg-secondary-200 active:bg-secondary-300;
+    }
+    
+    .btn-outline {
+        @apply border border-primary-600 text-primary-600 hover:bg-primary-50 active:bg-primary-100;
+    }
+    
+    .btn-ghost {
+        @apply text-secondary-600 hover:bg-secondary-100 active:bg-secondary-200;
+    }
+    
+    .btn-sm {
+        @apply h-8 px-3 text-xs;
+    }
+    
+    .btn-md {
+        @apply h-10 px-4 py-2;
+    }
+    
+    .btn-lg {
+        @apply h-12 px-8 text-base;
+    }
+    
+    /* Card Components */
+    .card {
+        @apply rounded-lg border bg-white shadow-sm;
+    }
+    
+    .card-header {
+        @apply flex flex-col space-y-1.5 p-6;
+    }
+    
+    .card-title {
+        @apply text-2xl font-semibold leading-none tracking-tight;
+    }
+    
+    .card-description {
+        @apply text-sm text-secondary-600;
+    }
+    
+    .card-content {
+        @apply p-6 pt-0;
+    }
+    
+    .card-footer {
+        @apply flex items-center p-6 pt-0;
+    }
+    
+    /* Input Components */
+    .input {
+        @apply flex h-10 w-full rounded-md border border-secondary-300 bg-white px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-secondary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+    
+    .input-error {
+        @apply border-error-500 focus-visible:ring-error-500;
+    }
+    
+    /* Label Components */
+    .label {
+        @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+    }
+    
+    /* Badge Components */
+    .badge {
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+    }
+    
+    .badge-primary {
+        @apply bg-primary-100 text-primary-800;
+    }
+    
+    .badge-secondary {
+        @apply bg-secondary-100 text-secondary-800;
+    }
+    
+    .badge-success {
+        @apply bg-success-100 text-success-800;
+    }
+    
+    .badge-warning {
+        @apply bg-warning-100 text-warning-800;
+    }
+    
+    .badge-error {
+        @apply bg-error-100 text-error-800;
+    }
+    
+    /* Loading Components */
+    .spinner {
+        @apply animate-spin rounded-full border-2 border-secondary-300 border-t-primary-600;
+    }
+    
+    /* Gradient Backgrounds */
+    .gradient-primary {
+        @apply bg-gradient-to-r from-primary-600 to-primary-800;
+    }
+    
+    .gradient-secondary {
+        @apply bg-gradient-to-r from-secondary-600 to-secondary-800;
+    }
+    
+    .gradient-accent {
+        @apply bg-gradient-to-r from-accent-600 to-accent-800;
+    }
+    
+    /* Glass Effect */
+    .glass {
+        @apply backdrop-blur-sm bg-white/80 border border-white/20;
+    }
+    
+    /* Hover Effects */
+    .hover-lift {
+        @apply transition-transform duration-200 hover:-translate-y-1;
+    }
+    
+    .hover-glow {
+        @apply transition-shadow duration-200 hover:shadow-lg hover:shadow-primary-500/25;
+    }
+    
+    /* Text Effects */
+    .text-gradient {
+        @apply bg-gradient-to-r from-primary-600 to-accent-600 bg-clip-text text-transparent;
+    }
+    
+    /* Scrollbar Styling */
+    .scrollbar-thin {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(203 213 225) transparent;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background-color: rgb(203 213 225);
+        border-radius: 3px;
+    }
+    
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+        background-color: rgb(148 163 184);
+    }
+}
+
+@layer utilities {
+    /* Animation Utilities */
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .animate-slide-up {
+        animation: slideUp 0.3s ease-out;
+    }
+    
+    .animate-slide-down {
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    .animate-scale-in {
+        animation: scaleIn 0.2s ease-out;
+    }
+    
+    /* Layout Utilities */
+    .container-custom {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+    
+    .section-padding {
+        @apply py-16 sm:py-20 lg:py-24;
+    }
+    
+    /* Text Utilities */
+    .text-balance {
+        text-wrap: balance;
+    }
+    
+    /* Focus Utilities */
+    .focus-ring {
+        @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    }
+    
+    /* Interactive Utilities */
+    .interactive {
+        @apply cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95;
+    }
+    
+    /* Status Utilities */
+    .status-online {
+        @apply bg-success-500;
+    }
+    
+    .status-offline {
+        @apply bg-secondary-400;
+    }
+    
+    .status-error {
+        @apply bg-error-500;
+    }
+    
+    .status-warning {
+        @apply bg-warning-500;
+    }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Selection styling */
+::selection {
+    background-color: rgb(59 130 246 / 0.2);
+    color: rgb(15 23 42);
+}
+
+/* Focus visible for better accessibility */
+:focus-visible {
+    outline: 2px solid rgb(59 130 246);
+    outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+}
