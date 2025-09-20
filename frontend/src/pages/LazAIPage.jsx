@@ -4,6 +4,7 @@ import { useWeb3 } from '../contexts/Web3Context';
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
+import lazaiService from '../services/lazaiService';
 
 const LazAIPage = () => {
   const { account, isConnected, switchToLazAINetwork } = useWeb3();
@@ -50,23 +51,43 @@ const LazAIPage = () => {
 
     setLoading(true);
     try {
-      // Simulate API call to backend
-      const response = await fetch('/api/lazai/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...uploadData,
-          creator: account
-        })
-      });
+      // Create a file from the data
+      const file = new File([uploadData.data], 'data.txt', { type: 'text/plain' });
+      
+      // Upload encrypted data to IPFS
+      const uploadResult = await lazaiService.uploadEncryptedData(
+        file,
+        uploadData.description || 'DataStreamNFT Data',
+        uploadData.description || 'DataStreamNFT Integration'
+      );
 
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      if (!uploadResult.success) {
+        throw new Error(uploadResult.message || 'Upload failed');
       }
 
-      const result = await response.json();
+      // Mint Data Anchoring Token (DAT)
+      const mintResult = await lazaiService.mintDataDAT(
+        uploadResult.tokenURI,
+        uploadData.queryPrice,
+        uploadResult.fileId,
+        uploadData.dataClass,
+        uploadData.dataValue
+      );
+
+      if (!mintResult.success) {
+        throw new Error(mintResult.message || 'DAT minting failed');
+      }
+
+      const result = {
+        fileId: uploadResult.fileId,
+        tokenId: mintResult.tokenId,
+        tokenURI: uploadResult.tokenURI,
+        dataClass: uploadData.dataClass,
+        dataValue: uploadData.dataValue,
+        queryPrice: uploadData.queryPrice,
+        transactionHash: mintResult.transactionHash
+      };
+
       setUploadResult(result);
       
       // Save file ID for inference
@@ -76,7 +97,7 @@ const LazAIPage = () => {
       toast.success('Data uploaded and DAT minted successfully!');
     } catch (error) {
       console.error('Upload error:', error);
-      toast.error('Upload failed. Please try again.');
+      toast.error(`Upload failed: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -95,29 +116,27 @@ const LazAIPage = () => {
 
     setLoading(true);
     try {
-      // Simulate API call to backend
-      const response = await fetch('/api/lazai/inference', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...inferenceData,
-          querier: account
-        })
-      });
+      // Run AI inference on the uploaded data
+      const result = await lazaiService.runInference(
+        inferenceData.fileId,
+        inferenceData.query,
+        '0.001' // Default payment amount
+      );
 
-      if (!response.ok) {
-        throw new Error('Inference failed');
+      if (!result.success) {
+        throw new Error(result.message || 'Inference failed');
       }
 
-      const result = await response.json();
-      setInferenceResult(result);
+      setInferenceResult({
+        query: inferenceData.query,
+        response: result.response,
+        metadata: result.metadata
+      });
       
       toast.success('Inference completed successfully!');
     } catch (error) {
       console.error('Inference error:', error);
-      toast.error('Inference failed. Please try again.');
+      toast.error(`Inference failed: ${error.message}`);
     } finally {
       setLoading(false);
     }

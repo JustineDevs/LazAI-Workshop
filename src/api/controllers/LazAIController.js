@@ -1,11 +1,187 @@
 const { ethers } = require('ethers');
 const { BlockchainService } = require('../services/BlockchainService');
 const { PinataService } = require('../services/PinataService');
+const multer = require('multer');
 
 class LazAIController {
     constructor() {
         this.blockchainService = new BlockchainService();
         this.pinataService = new PinataService();
+        
+        // Configure multer for file uploads
+        this.upload = multer({
+            storage: multer.memoryStorage(),
+            limits: {
+                fileSize: 10 * 1024 * 1024 // 10MB limit
+            }
+        });
+    }
+
+    /**
+     * Upload encrypted data to IPFS and get file ID
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async uploadEncryptedData(req, res) {
+        try {
+            if (!req.file) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'File is required.' 
+                });
+            }
+
+            const { title, description } = req.body;
+            const file = req.file;
+
+            // Read file content
+            const fileContent = file.buffer.toString('utf8');
+            
+            // Create metadata for IPFS upload
+            const metadata = {
+                name: title || file.originalname,
+                description: description || 'DataStreamNFT Integration',
+                encryptedData: fileContent,
+                timestamp: new Date().toISOString(),
+                fileType: file.mimetype,
+                size: file.size
+            };
+
+            // Upload to IPFS
+            const ipfsResult = await this.pinataService.uploadJSON(metadata);
+
+            if (!ipfsResult.success) {
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Failed to upload to IPFS.', 
+                    error: ipfsResult.error 
+                });
+            }
+
+            // Generate file ID (simulated for now, in production this would come from LazAI)
+            const fileId = `lazai_${ipfsResult.ipfsHash.substring(0, 16)}_${Date.now()}`;
+            const tokenURI = `ipfs://${ipfsResult.ipfsHash}`;
+
+            res.status(200).json({
+                success: true,
+                message: 'Encrypted data uploaded to IPFS successfully.',
+                fileId: fileId,
+                ipfsHash: ipfsResult.ipfsHash,
+                tokenURI: tokenURI
+            });
+        } catch (error) {
+            console.error('Error in uploadEncryptedData:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Internal server error'
+            });
+        }
+    }
+
+    /**
+     * Mint a Data Anchoring Token (DAT)
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async mintDataDAT(req, res) {
+        try {
+            const { tokenURI, queryPrice, fileId, dataClass, dataValue, creatorAddress } = req.body;
+
+            if (!tokenURI || !queryPrice || !fileId || !dataClass || !dataValue || !creatorAddress) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Missing required fields for DAT minting.' 
+                });
+            }
+
+            // Convert queryPrice to Wei
+            const queryPriceInWei = ethers.parseEther(queryPrice.toString());
+
+            const mintResult = await this.blockchainService.mintDataDAT(
+                tokenURI,
+                queryPriceInWei,
+                fileId,
+                dataClass,
+                dataValue
+            );
+
+            if (!mintResult.success) {
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Failed to mint Data DAT.', 
+                    error: mintResult.error 
+                });
+            }
+
+            res.status(201).json({
+                success: true,
+                message: 'Data Anchoring Token (DAT) minted successfully.',
+                tokenId: mintResult.tokenId,
+                transactionHash: mintResult.transactionHash
+            });
+        } catch (error) {
+            console.error('Error in mintDataDAT:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Internal server error'
+            });
+        }
+    }
+
+    /**
+     * Run AI inference on uploaded data
+     * @param {Object} req - Express request object
+     * @param {Object} res - Express response object
+     */
+    async runInference(req, res) {
+        try {
+            const { fileId, query, querierAddress, paymentAmount } = req.body;
+
+            if (!fileId || !query || !querierAddress || !paymentAmount) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: 'Missing required fields for inference.' 
+                });
+            }
+
+            // 1. Get DAT tokenId from fileId
+            const datLookup = await this.blockchainService.getDATByFileId(fileId);
+            if (!datLookup.success) {
+                return res.status(404).json({ 
+                    success: false, 
+                    message: 'DAT not found for the given file ID.', 
+                    error: datLookup.error 
+                });
+            }
+            const tokenId = datLookup.tokenId;
+
+            // 2. Pay for query on-chain
+            const paymentResult = await this.blockchainService.payForQuery(tokenId, paymentAmount);
+            if (!paymentResult.success) {
+                return res.status(500).json({ 
+                    success: false, 
+                    message: 'Failed to pay for query on-chain.', 
+                    error: paymentResult.error 
+                });
+            }
+
+            // 3. Simulate AI inference (this would be a call to LazAI API/model)
+            const inferenceResponse = `AI processed query "${query}" on data associated with File ID ${fileId}. Result: [Simulated AI Output]`;
+
+            res.status(200).json({
+                success: true,
+                message: 'AI inference completed successfully.',
+                query: query,
+                response: inferenceResponse,
+                transactionHash: paymentResult.transactionHash
+            });
+        } catch (error) {
+            console.error('Error in runInference:', error);
+            res.status(500).json({
+                success: false,
+                error: 'Internal server error'
+            });
+        }
     }
 
     /**
