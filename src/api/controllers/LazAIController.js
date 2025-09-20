@@ -1,6 +1,6 @@
 const { ethers } = require('ethers');
-const { BlockchainService } = require('../services/BlockchainService');
-const { PinataService } = require('../services/PinataService');
+const BlockchainService = require('../services/BlockchainService');
+const PinataService = require('../services/PinataService');
 const multer = require('multer');
 
 class LazAIController {
