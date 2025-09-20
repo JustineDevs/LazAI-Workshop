@@ -1,11 +1,12 @@
 const { ethers } = require('ethers');
-const BlockchainService = require('../services/BlockchainService');
 const PinataService = require('../services/PinataService');
 const multer = require('multer');
+const serviceManager = require('../services/ServiceManager');
 
 class LazAIController {
     constructor() {
-        this.blockchainService = new BlockchainService();
+        // Use shared service if available, otherwise create new instance
+        this.blockchainService = serviceManager.get('blockchain') || new (require('../services/BlockchainService'))();
         this.pinataService = new PinataService();
         
         // Configure multer for file uploads
@@ -294,62 +295,6 @@ class LazAIController {
         }
     }
 
-    /**
-     * Run AI inference on uploaded data
-     * @param {Object} req - Express request object
-     * @param {Object} res - Express response object
-     */
-    async runInference(req, res) {
-        try {
-            const { fileId, query, querier } = req.body;
-
-            // Validate required fields
-            if (!fileId || !query || !querier) {
-                return res.status(400).json({
-                    success: false,
-                    error: 'Missing required fields'
-                });
-            }
-
-            console.log(`🤖 Running AI inference...`);
-            console.log(`📄 File ID: ${fileId}`);
-            console.log(`📝 Query: ${query}`);
-            console.log(`👤 Querier: ${querier}`);
-
-            // Simulate AI inference (in real implementation, this would call LazAI inference service)
-            const inferenceResponse = {
-                response: `Based on the data associated with file ID ${fileId}, here's what I found: ${query}. This is a simulated response from the LazAI inference engine. In a real implementation, this would process your encrypted data and provide relevant insights.`,
-                metadata: {
-                    queryFee: '0.001 ETH',
-                    processingTime: '2.3s',
-                    dataSource: `LazAI File ID: ${fileId}`,
-                    model: 'gpt-3.5-turbo',
-                    confidence: 0.87
-                }
-            };
-
-            // In a real implementation, you would:
-            // 1. Verify the query payment was made
-            // 2. Call the LazAI inference service
-            // 3. Process the encrypted data
-            // 4. Return the inference result
-
-            res.json({
-                success: true,
-                fileId: fileId,
-                query: query,
-                response: inferenceResponse.response,
-                metadata: inferenceResponse.metadata
-            });
-
-        } catch (error) {
-            console.error('Error in runInference:', error);
-            res.status(500).json({
-                success: false,
-                error: 'Internal server error'
-            });
-        }
-    }
 
     /**
      * Get DAT information by token ID

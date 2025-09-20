@@ -22,6 +22,7 @@ const requestLogger = require('./middleware/requestLogger');
 // Import services
 const DatabaseService = require('./services/DatabaseService');
 const BlockchainService = require('./services/BlockchainService');
+const serviceManager = require('./services/ServiceManager');
 
 class Server {
     constructor() {
@@ -120,6 +121,8 @@ class Server {
     async initializeBlockchain() {
         try {
             await this.blockchainService.initialize();
+            // Register the initialized service
+            serviceManager.register('blockchain', this.blockchainService);
             this.logger.info('Blockchain service initialized successfully');
         } catch (error) {
             this.logger.error('Blockchain initialization failed:', error);

@@ -15,7 +15,7 @@ const blockchainController = new BlockchainController();
  * @access Public
  */
 router.get('/network',
-    blockchainController.getNetworkInfo
+    blockchainController.getNetworkInfo.bind(blockchainController)
 );
 
 /**
@@ -25,7 +25,7 @@ router.get('/network',
  */
 router.get('/balance/:address',
     ValidationMiddleware.validateEthereumAddress,
-    blockchainController.getBalance
+    blockchainController.getBalance.bind(blockchainController)
 );
 
 /**
@@ -34,7 +34,7 @@ router.get('/balance/:address',
  * @access Public
  */
 router.get('/contract-info',
-    blockchainController.getContractInfo
+    blockchainController.getContractInfo.bind(blockchainController)
 );
 
 /**
@@ -43,7 +43,7 @@ router.get('/contract-info',
  * @access Public
  */
 router.get('/data-nft/:tokenId',
-    blockchainController.getDataNFT
+    blockchainController.getDataNFT.bind(blockchainController)
 );
 
 /**
@@ -53,7 +53,7 @@ router.get('/data-nft/:tokenId',
  */
 router.get('/ownership/:tokenId/:address',
     ValidationMiddleware.validateEthereumAddress,
-    blockchainController.checkOwnership
+    blockchainController.checkOwnership.bind(blockchainController)
 );
 
 /**
@@ -62,7 +62,7 @@ router.get('/ownership/:tokenId/:address',
  * @access Public
  */
 router.get('/transaction/:hash',
-    blockchainController.getTransaction
+    blockchainController.getTransaction.bind(blockchainController)
 );
 
 /**
@@ -71,7 +71,7 @@ router.get('/transaction/:hash',
  * @access Public
  */
 router.get('/block/:number',
-    blockchainController.getBlock
+    blockchainController.getBlock.bind(blockchainController)
 );
 
 /**
@@ -80,7 +80,7 @@ router.get('/block/:number',
  * @access Public
  */
 router.get('/gas-price',
-    blockchainController.getGasPrice
+    blockchainController.getGasPrice.bind(blockchainController)
 );
 
 /**
@@ -89,7 +89,7 @@ router.get('/gas-price',
  * @access Public
  */
 router.post('/estimate-gas',
-    blockchainController.estimateGas
+    blockchainController.estimateGas.bind(blockchainController)
 );
 
 module.exports = router;

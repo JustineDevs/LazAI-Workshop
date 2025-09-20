@@ -13,7 +13,7 @@ class BlockchainService {
     async initialize() {
         try {
             // Initialize provider
-            const rpcUrl = process.env.LAZCHAIN_RPC_URL || 'http://localhost:8545';
+            const rpcUrl = process.env.LAZAI_RPC_URL || 'http://localhost:8545';
             this.provider = new ethers.JsonRpcProvider(rpcUrl);
 
             // Initialize wallet if private key is provided
@@ -22,7 +22,7 @@ class BlockchainService {
             }
 
             // Load contract addresses from environment
-            const dataStreamNFTAddress = process.env.CONTRACT_ADDRESS || '0x1868C3935B5A548C90d5660981FB866160382Da7';
+            const dataStreamNFTAddress = process.env.DATASTREAM_NFT_CONTRACT_ADDRESS || '0x1868C3935B5A548C90d5660981FB866160382Da7';
             const dataStreamDATAddress = process.env.DAT_CONTRACT_ADDRESS;
 
             if (dataStreamNFTAddress) {

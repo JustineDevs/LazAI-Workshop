@@ -1,9 +1,10 @@
-const BlockchainService = require('../services/BlockchainService');
 const { ethers } = require('ethers');
+const serviceManager = require('../services/ServiceManager');
 
 class BlockchainController {
     constructor() {
-        this.blockchainService = new BlockchainService();
+        // Use shared service if available, otherwise create new instance
+        this.blockchainService = serviceManager.get('blockchain') || new (require('../services/BlockchainService'))();
     }
 
     /**
@@ -11,6 +12,11 @@ class BlockchainController {
      */
     async getNetworkInfo(req, res, next) {
         try {
+            // Ensure service is initialized
+            if (!this.blockchainService.isServiceInitialized()) {
+                await this.blockchainService.initialize();
+            }
+
             const networkInfo = await this.blockchainService.getNetworkInfo();
 
             res.json({
@@ -50,6 +56,11 @@ class BlockchainController {
      */
     async getContractInfo(req, res, next) {
         try {
+            // Ensure service is initialized
+            if (!this.blockchainService.isServiceInitialized()) {
+                await this.blockchainService.initialize();
+            }
+
             const contractInfo = await this.blockchainService.getContractInfo();
 
             res.json({
