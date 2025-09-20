@@ -164,3 +164,14 @@ generated/
 # Project specific directories
 query-smart-contract/
 rules/
+
+# LazAI Integration
+lazai-integration/venv/
+lazai-integration/__pycache__/
+lazai-integration/*.pyc
+lazai-integration/*.pyo
+lazai-integration/*.pyd
+lazai-integration/.Python
+lazai-integration/file_id.txt
+lazai-integration/dat_results.json
+lazai-integration/.env

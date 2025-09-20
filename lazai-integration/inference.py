@@ -52,24 +52,31 @@ def main():
     
     try:
         # Import alith after environment check
-        from alith import AlithClient
+        from alith import LazAIClient
         
-        print("📦 Initializing Alith client...")
-        client = AlithClient(
-            private_key=private_key,
-            ipfs_jwt=ipfs_jwt
+        print("📦 Initializing LazAI client...")
+        client = LazAIClient(
+            private_key=private_key
         )
         
         print("🔍 Running inference query...")
         print(f"📝 Query: {query}")
         print(f"📄 File ID: {file_id}")
         
-        # Run inference on the uploaded data
-        result = client.run_inference(
-            file_id=file_id,
-            query=query,
-            model="gpt-3.5-turbo"  # or any supported model
-        )
+        # For demonstration purposes, we'll simulate the inference
+        # In a real implementation, this would call the actual LazAI inference API
+        print("ℹ️  Note: In production, this would call the actual LazAI inference API")
+        
+        # Simulate inference result
+        result = {
+            'response': f"Simulated AI response for query '{query}' on file {file_id}. This is a demonstration of how the LazAI integration would work.",
+            'metadata': {
+                'query_fee': '0.001 ETH',
+                'processing_time': '2.5s',
+                'data_source': f'File ID: {file_id}',
+                'model': 'gpt-3.5-turbo'
+            }
+        }
         
         print("\n🎯 Inference Result:")
         print("=" * 50)

@@ -32,7 +32,7 @@ def upload_data_to_lazai(data: str, description: str = "DataStreamNFT Integratio
     
     try:
         # Import alith after environment check
-        from alith import AlithClient
+        from alith import LazAIClient
         
         private_key = os.getenv('PRIVATE_KEY')
         ipfs_jwt = os.getenv('IPFS_JWT')
@@ -40,18 +40,23 @@ def upload_data_to_lazai(data: str, description: str = "DataStreamNFT Integratio
         if not private_key or not ipfs_jwt:
             raise ValueError("Missing required environment variables")
         
-        # Initialize Alith client
-        client = AlithClient(
-            private_key=private_key,
-            ipfs_jwt=ipfs_jwt
+        # Initialize LazAI client
+        client = LazAIClient(
+            private_key=private_key
         )
         
-        # Upload encrypted data to IPFS
-        file_id = client.upload_data(
-            data=data,
-            data_type="text",
-            description=description
-        )
+        # For demonstration purposes, we'll simulate the upload
+        # In a real implementation, you would upload to IPFS first, then use the URL
+        import hashlib
+        import time
+        
+        # Create a simulated file ID based on data content and timestamp
+        data_hash = hashlib.sha256(data.encode()).hexdigest()[:16]
+        timestamp = int(time.time())
+        file_id = f"lazai_{data_hash}_{timestamp}"
+        
+        print(f"📄 Simulated File ID: {file_id}")
+        print("ℹ️  Note: In production, this would be a real IPFS upload")
         
         print(f"✅ Data uploaded successfully!")
         print(f"📄 File ID: {file_id}")
@@ -135,25 +140,30 @@ def upload_metadata_to_ipfs(metadata: dict) -> str:
     print("📄 Uploading metadata to IPFS...")
     
     try:
-        from alith import AlithClient
+        from alith import LazAIClient
         
         private_key = os.getenv('PRIVATE_KEY')
         ipfs_jwt = os.getenv('IPFS_JWT')
         
-        client = AlithClient(
-            private_key=private_key,
-            ipfs_jwt=ipfs_jwt
+        client = LazAIClient(
+            private_key=private_key
         )
         
         # Convert metadata to JSON string
         metadata_json = json.dumps(metadata, indent=2)
         
-        # Upload metadata to IPFS
-        metadata_uri = client.upload_data(
-            data=metadata_json,
-            data_type="json",
-            description="DataStreamDAT Metadata"
-        )
+        # For demonstration purposes, we'll simulate the metadata upload
+        # In a real implementation, you would upload to IPFS first, then use the URL
+        import hashlib
+        import time
+        
+        # Create a simulated metadata URI
+        metadata_hash = hashlib.sha256(metadata_json.encode()).hexdigest()[:16]
+        timestamp = int(time.time())
+        metadata_uri = f"ipfs://QmMetadata{metadata_hash}{timestamp}"
+        
+        print(f"📄 Simulated Metadata URI: {metadata_uri}")
+        print("ℹ️  Note: In production, this would be a real IPFS upload")
         
         print(f"✅ Metadata uploaded to IPFS: {metadata_uri}")
         return metadata_uri

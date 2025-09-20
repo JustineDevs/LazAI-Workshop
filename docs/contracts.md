@@ -1,0 +1,6 @@
+🚀 Starting DataStreamDAT deployment...
+Deploying contracts with account: 0xbadF2152017e26518140d7C8827BD83e2cA79f15
+Account balance: 4.991361628976843801 ETH
+Platform treasury: 0xbadF2152017e26518140d7C8827BD83e2cA79f15
+📦 Deploying DataStreamDAT contract...
+✅ DataStreamDAT deployed to: 0xDDE742AD657748030F2DC89b799b54C25853d996
