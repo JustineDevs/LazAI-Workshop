@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
     Github, 
     Twitter, 
-    Discord, 
+    MessageCircle, 
     Mail, 
     ExternalLink,
     Heart
@@ -42,7 +42,7 @@ const Footer = () => {
     const socialLinks = [
         { name: 'GitHub', href: 'https://github.com/yourusername/DataStreamNFT', icon: Github },
         { name: 'Twitter', href: 'https://twitter.com/datastreamnft', icon: Twitter },
-        { name: 'Discord', href: 'https://discord.gg/datastreamnft', icon: Discord },
+        { name: 'Discord', href: 'https://discord.gg/datastreamnft', icon: MessageCircle },
         { name: 'Email', href: 'mailto:hello@datastreamnft.com', icon: Mail },
     ];
 

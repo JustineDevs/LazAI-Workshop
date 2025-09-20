@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useWeb3 } from '../contexts/Web3Context';
-import { Button } from '../components/ui/Button';
-import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import Button from '../components/ui/Button';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 import lazaiService from '../services/lazaiService';
 
