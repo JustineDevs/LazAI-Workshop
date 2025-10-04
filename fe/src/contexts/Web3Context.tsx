@@ -65,6 +65,8 @@ interface Web3ContextType {
   switchToLazAINetwork: () => Promise<void>;
   getContract: (contractName: string) => ethers.Contract | null;
   updateBalances: (provider: ethers.BrowserProvider, address: string) => Promise<void>;
+  signMessage: (message: string) => Promise<string>;
+  dataStreamDATContract: ethers.Contract | null;
   CONTRACT_ADDRESSES: Record<string, string>;
   CONTRACT_ABIS: Record<string, string[]>;
   LAZAI_NETWORK: {
@@ -102,6 +104,7 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
   // Contract addresses (these would come from environment variables in production)
   const CONTRACT_ADDRESSES = useMemo(() => ({
     DataStreamNFT: process.env.NEXT_PUBLIC_DATASTREAM_NFT_ADDRESS || '0x1868C3935B5A548C90d5660981FB866160382Da7',
+    DataStreamDAT: process.env.NEXT_PUBLIC_DATASTREAM_DAT_ADDRESS || '0x1868C3935B5A548C90d5660981FB866160382Da7',
     DATToken: process.env.NEXT_PUBLIC_DAT_TOKEN_ADDRESS || '0x...', // Not used for ETH payments
   }), []);
 
@@ -119,6 +122,20 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       "function platformTreasury() external view returns (address)",
       "function platformFeeBps() external view returns (uint256)",
       "event DataNFTMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice)",
+      "event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount)",
+      "event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice)"
+    ],
+    DataStreamDAT: [
+      "function mintDataDAT(string memory tokenURI, uint256 queryPriceInWei, string memory fileId, string memory dataClass, string memory dataValue) external returns (uint256)",
+      "function payForQuery(uint256 tokenId) external payable",
+      "function updateQueryPrice(uint256 tokenId, uint256 newPriceInWei) external",
+      "function dataDATs(uint256) view returns (address creator, uint256 queryPrice, uint256 totalQueries, uint256 totalEarned, uint256 createdAt, bool isActive, string fileId, string dataClass, string dataValue)",
+      "function ownerOf(uint256 tokenId) view returns (address)",
+      "function tokenURI(uint256 tokenId) view returns (string)",
+      "function balanceOf(address owner) view returns (uint256)",
+      "function totalSupply() view returns (uint256)",
+      "function getCreatorTokens(address creator) view returns (uint256[])",
+      "event DataDATMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice, string fileId, string dataClass, string dataValue)",
       "event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount)",
       "event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice)"
     ],
@@ -403,6 +420,31 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
     checkConnection();
   }, [getProvider, updateBalances, isMetaMaskInstalled, getEthereum]);
 
+  const signMessage = useCallback(async (message: string): Promise<string> => {
+    if (!signer) {
+      throw new Error('No signer available');
+    }
+    
+    try {
+      const signature = await signer.signMessage(message);
+      return signature;
+    } catch (error) {
+      console.error('Failed to sign message:', error);
+      throw new Error('Failed to sign message');
+    }
+  }, [signer]);
+
+  const dataStreamDATContract = useMemo(() => {
+    if (!provider || !signer) return null;
+    
+    const address = CONTRACT_ADDRESSES.DataStreamDAT;
+    const abi = CONTRACT_ABIS.DataStreamDAT;
+    
+    if (!address || address === '0x...') return null;
+    
+    return new ethers.Contract(address, abi, signer);
+  }, [provider, signer, CONTRACT_ADDRESSES.DataStreamDAT, CONTRACT_ABIS.DataStreamDAT]);
+
   const value: Web3ContextType = {
     // State
     provider,
@@ -421,6 +463,8 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
     switchToLazAINetwork,
     getContract,
     updateBalances,
+    signMessage,
+    dataStreamDATContract,
     
     // Constants
     CONTRACT_ADDRESSES,

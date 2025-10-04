@@ -14,6 +14,10 @@ const userRoutes = require('./routes/userRoutes');
 const ipfsRoutes = require('./routes/ipfsRoutes');
 const blockchainRoutes = require('./routes/blockchainRoutes');
 const lazaiRoutes = require('./routes/lazaiRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const enhancedLazaiRoutes = require('./routes/enhancedLazaiRoutes');
+const communityRoutes = require('./routes/communityRoutes');
+const enhancedUploadRoutes = require('./routes/enhancedUploadRoutes');
 
 // Import middleware
 const errorHandler = require('./middleware/errorHandler');
@@ -94,6 +98,10 @@ class Server {
         this.app.use('/api/v1/ipfs', ipfsRoutes);
         this.app.use('/api/v1/blockchain', blockchainRoutes);
         this.app.use('/api/lazai', lazaiRoutes);
+        this.app.use('/api/analytics', analyticsRoutes);
+        this.app.use('/api/enhanced-lazai', enhancedLazaiRoutes);
+        this.app.use('/api/community', communityRoutes);
+        this.app.use('/api/enhanced-upload', enhancedUploadRoutes);
 
         // 404 handler
         this.app.use('*', (req, res) => {

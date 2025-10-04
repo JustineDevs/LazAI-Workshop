@@ -1,16 +1,24 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 /**
- * @title DataStreamNFT
- * @dev NFT contract for data monetization with query-based micropayments
+ * @title DataStreamNFTUpgradeable
+ * @dev Upgradable NFT contract for data monetization with query-based micropayments
  * @author DataStreamNFT Team
  */
-contract DataStreamNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
+contract DataStreamNFTUpgradeable is 
+    Initializable,
+    ERC721URIStorageUpgradeable,
+    OwnableUpgradeable,
+    ReentrancyGuardUpgradeable,
+    UUPSUpgradeable
+{
     // Events
     event DataNFTMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice, uint256 timestamp);
     event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount, string query, uint256 timestamp);
@@ -72,7 +80,17 @@ contract DataStreamNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
         _;
     }
 
-    constructor(address _platformTreasury, uint256 _platformFeeBps) ERC721("DataStreamNFT", "DAT") Ownable(msg.sender) {
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address _platformTreasury, uint256 _platformFeeBps) public initializer {
+        __ERC721_init("DataStreamNFT", "DAT");
+        __Ownable_init(msg.sender);
+        __ReentrancyGuard_init();
+        __UUPSUpgradeable_init();
+        
         require(_platformTreasury != address(0), "Invalid treasury");
         require(_platformFeeBps <= 1000, "Fee cannot exceed 10%");
         
@@ -131,6 +149,7 @@ contract DataStreamNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
         require(sentCreator, "Creator payment failed");
 
         // Update statistics
+        nft.totalQueries++;
         nft.totalQueries++;
         nft.totalEarned += creatorAmount;
         nft.queryHistory[query]++;
@@ -308,6 +327,9 @@ contract DataStreamNFT is ERC721URIStorage, Ownable, ReentrancyGuard {
         }
         return total;
     }
+
+    // Required by UUPSUpgradeable
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     // Override _baseURI if needed
     function _baseURI() internal view override returns (string memory) {

@@ -1,10 +1,12 @@
 const { ethers } = require("hardhat");
 
 async function main() {
-    console.log("Starting DataStreamNFT deployment...");
+    console.log("Starting DataStreamNFTUpgradeable deployment...");
 
-    // Get the contract factory
-    const DataStreamNFT = await ethers.getContractFactory("DataStreamNFT");
+    // Get the contract factories
+    const DataStreamNFTUpgradeable = await ethers.getContractFactory("DataStreamNFTUpgradeable");
+    const ProxyAdmin = await ethers.getContractFactory("ProxyAdmin");
+    const TransparentUpgradeableProxy = await ethers.getContractFactory("TransparentUpgradeableProxy");
 
     // Get the deployer account
     const [deployer] = await ethers.getSigners();
@@ -14,40 +16,82 @@ async function main() {
     const balance = await ethers.provider.getBalance(deployer.address);
     console.log("Account balance:", ethers.formatEther(balance), "ETH");
 
-    // Deploy DataStreamNFT with platform treasury
-    console.log("\nDeploying DataStreamNFT...");
-    const platformTreasury = deployer.address; // Use deployer as platform treasury for now
-    const dataStreamNFT = await DataStreamNFT.deploy(platformTreasury);
-    await dataStreamNFT.waitForDeployment();
-    console.log("DataStreamNFT deployed to:", await dataStreamNFT.getAddress());
+    // Deploy platform treasury (using deployer for now)
+    const platformTreasury = deployer.address;
+    const platformFeeBps = 250; // 2.5% platform fee
 
-    // Verify deployments
-    console.log("\nVerifying deployments...");
+    console.log("\n=== Deployment Steps ===");
+
+    // Step 1: Deploy implementation contract
+    console.log("1. Deploying DataStreamNFTUpgradeable implementation...");
+    const implementation = await DataStreamNFTUpgradeable.deploy();
+    await implementation.waitForDeployment();
+    const implementationAddress = await implementation.getAddress();
+    console.log("   Implementation deployed to:", implementationAddress);
+
+    // Step 2: Deploy ProxyAdmin
+    console.log("2. Deploying ProxyAdmin...");
+    const proxyAdmin = await ProxyAdmin.deploy();
+    await proxyAdmin.waitForDeployment();
+    const proxyAdminAddress = await proxyAdmin.getAddress();
+    console.log("   ProxyAdmin deployed to:", proxyAdminAddress);
+
+    // Step 3: Prepare initialization data
+    console.log("3. Preparing initialization data...");
+    const initData = DataStreamNFTUpgradeable.interface.encodeFunctionData(
+        "initialize",
+        [platformTreasury, platformFeeBps]
+    );
+
+    // Step 4: Deploy TransparentUpgradeableProxy
+    console.log("4. Deploying TransparentUpgradeableProxy...");
+    const proxy = await TransparentUpgradeableProxy.deploy(
+        implementationAddress,
+        proxyAdminAddress,
+        initData
+    );
+    await proxy.waitForDeployment();
+    const proxyAddress = await proxy.getAddress();
+    console.log("   Proxy deployed to:", proxyAddress);
+
+    // Step 5: Create contract instance to interact with proxy
+    console.log("5. Creating contract instance...");
+    const dataStreamNFT = DataStreamNFTUpgradeable.attach(proxyAddress);
+
+    // Step 6: Verify deployment
+    console.log("\n=== Verifying Deployment ===");
     
     const dataStreamNFTName = await dataStreamNFT.name();
     const dataStreamNFTSymbol = await dataStreamNFT.symbol();
     const platformTreasuryAddress = await dataStreamNFT.platformTreasury();
-    const platformFeeBps = await dataStreamNFT.platformFeeBps();
+    const platformFeeBpsActual = await dataStreamNFT.platformFeeBps();
+    const owner = await dataStreamNFT.owner();
 
     console.log("\n=== Deployment Summary ===");
-    console.log("DataStreamNFT:");
-    console.log("  Address:", await dataStreamNFT.getAddress());
+    console.log("DataStreamNFTUpgradeable (Upgradeable):");
+    console.log("  Proxy Address:", proxyAddress);
+    console.log("  Implementation Address:", implementationAddress);
+    console.log("  ProxyAdmin Address:", proxyAdminAddress);
     console.log("  Name:", dataStreamNFTName);
     console.log("  Symbol:", dataStreamNFTSymbol);
+    console.log("  Owner:", owner);
     console.log("  Platform Treasury:", platformTreasuryAddress);
-    console.log("  Platform Fee:", platformFeeBps.toString(), "bps (", (Number(platformFeeBps) / 100).toString(), "%)");
+    console.log("  Platform Fee:", platformFeeBpsActual.toString(), "bps (", (Number(platformFeeBpsActual) / 100).toString(), "%)");
 
     // Save deployment info
     const deploymentInfo = {
         network: await ethers.provider.getNetwork(),
         deployer: deployer.address,
         contracts: {
-            DataStreamNFT: {
-                address: await dataStreamNFT.getAddress(),
+            DataStreamNFTUpgradeable: {
+                proxyAddress: proxyAddress,
+                implementationAddress: implementationAddress,
+                proxyAdminAddress: proxyAdminAddress,
                 name: dataStreamNFTName,
                 symbol: dataStreamNFTSymbol,
+                owner: owner,
                 platformTreasury: platformTreasuryAddress,
-                platformFeeBps: platformFeeBps.toString()
+                platformFeeBps: platformFeeBpsActual.toString()
             }
         },
         timestamp: new Date().toISOString()
@@ -62,18 +106,26 @@ async function main() {
         fs.mkdirSync(deploymentDir, { recursive: true });
     }
 
-    const deploymentFile = path.join(deploymentDir, `${await ethers.provider.getNetwork().then(n => n.name)}.json`);
+    const networkName = (await ethers.provider.getNetwork()).name;
+    const deploymentFile = path.join(deploymentDir, `${networkName}.json`);
     fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
     
     console.log(`\nDeployment info saved to: ${deploymentFile}`);
 
     // Instructions for next steps
     console.log("\n=== Next Steps ===");
-    console.log("1. Update your .env file with the contract address");
-    console.log("2. Verify contract on block explorer (if applicable)");
+    console.log("1. Update your .env file with the proxy address:", proxyAddress);
+    console.log("2. Verify contracts on block explorer (if applicable)");
     console.log("3. Test the contract with sample data");
     console.log("4. Deploy frontend and connect to contract");
     console.log("5. Set up platform treasury address for production");
+    console.log("6. Transfer ownership to a multisig wallet for security");
+
+    console.log("\n=== Upgrade Instructions ===");
+    console.log("To upgrade the contract in the future:");
+    console.log("1. Deploy new implementation contract");
+    console.log("2. Call proxyAdmin.upgrade(proxyAddress, newImplementationAddress)");
+    console.log("3. Verify the upgrade was successful");
 
     console.log("\nDeployment completed successfully!");
 }
