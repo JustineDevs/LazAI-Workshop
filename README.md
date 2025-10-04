@@ -40,7 +40,7 @@
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
-        A[React UI] --> B[MetaMask Wallet]
+        A[Next.js App] --> B[Web3 Wallet]
         A --> C[Query Interface]
         A --> D[Marketplace]
     end
@@ -106,136 +106,247 @@ graph TB
 | **Storage** | Pinata Cloud | Decentralized IPFS file hosting |
 | **Authentication** | MetaMask | Secure Web3 wallet integration |
 | **Database** | MongoDB | Metadata indexing & user profiles |
-| **Backend** | Node.js + Express | API layer & blockchain interactions |
-| **Frontend** | React + Tailwind CSS | Responsive user interface |
-| **SDK** | JavaScript SDK | Data NFT minting & query metering |
-| **Development** | Hardhat + Ethers.js | Smart contract development |
-| **AI Integration** | LazAI/Alith | Encrypted data upload & AI inference |
-| **Data Privacy** | End-to-end encryption | Privacy-preserving data monetization |
+| **Frontend** | Next.js 15 + React 19 | Modern, responsive user interface |
+| **Backend** | Node.js + Express | RESTful API & business logic |
+| **Testing** | Jest + Playwright | Comprehensive test coverage |
+| **Monitoring** | Winston + Custom | Performance & error tracking |
 
-## 🎮 User Journey
-
-<div align="center">
-
-### From Zero to Data NFT Owner in 10 Minutes
-
-```mermaid
-journey
-    title New User Onboarding Flow
-    section Discovery
-      Visit Homepage: 5: User
-      Connect Wallet: 4: User
-      Quick Tour: 3: User
-    section Creation
-      Upload Dataset: 5: User
-      Mint DataStreamNFT: 5: User
-      Set Query Price: 4: User
-    section Interaction
-      Browse Marketplace: 4: User
-      Test Query Demo: 5: User
-      View Earnings: 5: User
-    section Growth
-      Share & Invite: 3: User
-      Join Community: 4: User
-      Connect AI Projects: 5: User
-```
-
-</div>
-
-### User Stories
-
-- **Creator**: Upload dataset → Mint DataStreamNFT → Set query price → Earn continuous revenue
-- **AI Developer**: Query dataset → Smart contract verification → Micropayment transfer → Access granted
-- **Contributor**: View earnings dashboard → Track query statistics → Monitor performance
-- **Trader**: Secondary market trading → On-chain ownership transfer → Royalty distribution
-- **Curator**: Reward high-quality data NFTs → Grant boosts → Community governance
-
-## 🎯 Community Features
-
-[![Discord](https://img.shields.io/badge/Discord-Join%20Community-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/datastreamnft)
-[![Twitter](https://img.shields.io/badge/Twitter-Follow%20Us-1DA1F2?style=flat-square&logo=twitter&logoColor=white)](https://twitter.com/datastreamnft)
-[![GitHub Discussions](https://img.shields.io/badge/GitHub-Discussions-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/yourusername/DataStreamNFT/discussions)
-
-- 🏆 **Gamification**: Leaderboards by earnings, query volume, and reputation
-- 💬 **Discord Integration**: Real-time community support and collaboration
-- ⭐ **Quality System**: User feedback, ratings, and quality reports
-- 🛠️ **Open Source SDK**: Community-driven development and contributions
-- 🎉 **Hackathons**: Regular events to onboard users and gather feedback
-
-## 🚀 Getting Started
+## 🚀 Quick Start
 
 ### Prerequisites
 
-- Node.js 16+ and npm
-- MetaMask wallet
+- Node.js 18+ and npm 8+
+- MongoDB 6+
+- MetaMask browser extension
 - Git
 
 ### Installation
 
+1. **Clone the repository**
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/DataStreamNFT.git
 cd DataStreamNFT
+```
 
-# Install dependencies
+2. **Install dependencies**
+```bash
 npm install
+cd fe && npm install && cd ..
+```
 
-# Set up environment variables
+3. **Set up environment variables**
+```bash
 cp .env.example .env
 # Edit .env with your configuration
+```
 
-# Start development server
+4. **Start MongoDB**
+```bash
+# On Windows
+net start MongoDB
+
+# On macOS/Linux
+brew services start mongodb-community
+```
+
+5. **Start the development servers**
+```bash
 npm run dev
 ```
 
-### Quick Start
+6. **Open your browser**
+```
+Frontend: http://localhost:3000
+Backend API: http://localhost:3001
+```
 
-1. **Connect Wallet**: Use MetaMask to connect to Lazchain network
-2. **Upload Data**: Upload your dataset to Pinata IPFS or use LazAI integration
-3. **Mint NFT**: Create your DataStreamNFT with custom pricing
-4. **Start Earning**: AI queries will trigger automatic micropayments
+## 📖 Documentation
 
-### LazAI Integration
+- **[User Guide](docs/USER_GUIDE.md)** - Complete user manual
+- **[API Documentation](docs/API_DOCUMENTATION.md)** - REST API reference
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Development documentation
+- **[Deployment Guide](docs/DEPLOYMENT_GUIDE.md)** - Production deployment
+- **[LazAI Integration](docs/LAZAI_INTEGRATION.md)** - LazAI framework integration
 
-For advanced privacy-preserving data monetization:
+## 🧪 Testing
 
-1. **Setup Python Environment**: Follow the [LazAI Integration Guide](docs/LAZAI_INTEGRATION.md)
-2. **Upload Encrypted Data**: Use LazAI/Alith to upload encrypted data to IPFS
-3. **Mint DAT**: Create Data Anchoring Tokens for your encrypted data
-4. **Run AI Inference**: Query your data using AI models while maintaining privacy
+### Run All Tests
+```bash
+npm test
+```
 
-## 📊 Roadmap
+### Run Specific Test Suites
+```bash
+# Contract tests
+npm run test:contracts
 
-- [x] **Phase 1**: Core platform development
-- [x] **Phase 2**: Smart contract deployment
-- [ ] **Phase 3**: AI integration SDK
-- [ ] **Phase 4**: Mobile application
-- [ ] **Phase 5**: Cross-chain expansion
+# Backend API tests
+npm run test:backend
+
+# Frontend tests
+npm run test:frontend
+
+# End-to-end tests
+npm run test:e2e
+
+# Performance tests
+npm run test:performance
+```
+
+### Test Coverage
+```bash
+npm run test:coverage
+```
+
+## 🚀 Deployment
+
+### Development
+```bash
+npm run dev
+```
+
+### Production
+```bash
+npm run build
+npm start
+```
+
+### Docker
+```bash
+docker build -t datastreamnft .
+docker run -p 3000:3000 -p 3001:3001 datastreamnft
+```
+
+## 📊 Monitoring
+
+### Health Check
+```bash
+curl http://localhost:3001/api/v1/monitoring/health
+```
+
+### Metrics
+```bash
+curl http://localhost:3001/api/v1/monitoring/metrics
+```
+
+### Performance Testing
+```bash
+npm run test:performance
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `NODE_ENV` | Environment | `development` |
+| `PORT` | Backend port | `3001` |
+| `MONGODB_URI` | Database connection | `mongodb://localhost:27017/datastreamnft` |
+| `LAZAI_RPC_URL` | Blockchain RPC | `https://testnet.lazai.network` |
+| `PINATA_API_KEY` | IPFS API key | Required |
+| `JWT_SECRET` | JWT signing secret | Required |
+
+### Smart Contract Addresses
+
+| Contract | Address |
+|----------|---------|
+| DataStreamNFT | `0x1868C3935B5A548C90d5660981FB866160382Da7` |
+| DAT Token | `0x3A9F22DEddF83E5A49df9A9c946E4b0840ecd877` |
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square&logo=github&logoColor=white)](https://github.com/yourusername/DataStreamNFT/pulls)
-[![Issues](https://img.shields.io/badge/Issues-Report%20Bug-red?style=flat-square&logo=github&logoColor=white)](https://github.com/yourusername/DataStreamNFT/issues)
+### Development Workflow
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+### Code Style
+
+- ESLint for JavaScript/TypeScript
+- Prettier for code formatting
+- Conventional commits for commit messages
+
+## 📈 Roadmap
+
+### ✅ Completed
+- [x] Core smart contracts
+- [x] Backend API
+- [x] Frontend application
+- [x] LazAI integration
+- [x] Testing suite
+- [x] Performance monitoring
+- [x] Documentation
+
+### 🔄 In Progress
+- [ ] Mobile application
+- [ ] Advanced analytics
+- [ ] API rate limiting
+- [ ] Data validation tools
+
+### 📋 Planned
+- [ ] Community features
+- [ ] Advanced AI models
+- [ ] Cross-chain support
+- [ ] Enterprise features
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+**Wallet not connecting**
+- Ensure MetaMask is installed and unlocked
+- Check that you're on the LazAI Testnet
+- Try refreshing the page
+
+**Database connection issues**
+- Verify MongoDB is running
+- Check connection string in .env
+- Ensure database permissions
+
+**Build failures**
+- Clear node_modules and reinstall
+- Check Node.js version compatibility
+- Verify all environment variables
+
+### Getting Help
+
+- **Documentation**: Check the guides above
+- **Issues**: Report bugs on GitHub
+- **Discussions**: Join our Discord server
+- **Email**: support@datastreamnft.com
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🔗 Links
+## 🙏 Acknowledgments
+
+- [Lazchain](https://lazchain.com) for blockchain infrastructure
+- [Pinata](https://pinata.cloud) for IPFS storage
+- [OpenZeppelin](https://openzeppelin.com) for smart contract libraries
+- [Next.js](https://nextjs.org) for the frontend framework
+- [MongoDB](https://mongodb.com) for database services
+
+## 📞 Contact
 
 - **Website**: [datastreamnft.com](https://datastreamnft.com)
-- **Documentation**: [docs.datastreamnft.com](https://docs.datastreamnft.com)
-- **API Reference**: [api.datastreamnft.com](https://api.datastreamnft.com)
-- **SDK Documentation**: [sdk.datastreamnft.com](https://sdk.datastreamnft.com)
+- **Email**: hello@datastreamnft.com
+- **Twitter**: [@datastreamnft](https://twitter.com/datastreamnft)
+- **Discord**: [Join our community](https://discord.gg/datastreamnft)
+- **GitHub**: [github.com/yourusername/DataStreamNFT](https://github.com/yourusername/DataStreamNFT)
 
 ---
 
 <div align="center">
 
-**Built with ❤️ for the future of data economy**
+**Built with ❤️ for the decentralized future**
 
-[![Made with Love](https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge)](https://github.com/yourusername/DataStreamNFT)
+[⭐ Star us on GitHub](https://github.com/yourusername/DataStreamNFT) • [🐛 Report Issues](https://github.com/yourusername/DataStreamNFT/issues) • [💬 Join Discussions](https://github.com/yourusername/DataStreamNFT/discussions)
 
 </div>

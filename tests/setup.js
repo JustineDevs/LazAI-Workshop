@@ -1,31 +1,50 @@
-// Jest setup file
-const mongoose = require('mongoose');
+// Test setup and configuration
+const { expect } = require('chai');
 
-// Increase timeout for database operations
-jest.setTimeout(30000);
+// Global test configuration
+global.expect = expect;
 
-// Global test setup
-beforeAll(async () => {
-    // Set test environment
-    process.env.NODE_ENV = 'test';
-    process.env.MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/datastreamnft_test';
-    process.env.JWT_SECRET = 'test-jwt-secret';
-});
+// Setup test environment
+process.env.NODE_ENV = 'test';
+process.env.MONGODB_URI = 'mongodb://localhost:27017/datastreamnft_test';
+process.env.JWT_SECRET = 'test-secret-key';
+process.env.LAZAI_RPC_URL = 'https://testnet.lazai.network';
+process.env.LAZAI_CHAIN_ID = '133718';
 
-// Global test teardown
-afterAll(async () => {
-    // Close database connection
-    if (mongoose.connection.readyState !== 0) {
-        await mongoose.connection.close();
-    }
-});
-
-// Suppress console.log in tests unless explicitly needed
+// Mock console methods in tests to reduce noise
+const originalConsole = console;
 global.console = {
-    ...console,
-    log: jest.fn(),
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+  ...originalConsole,
+  log: () => {},
+  warn: () => {},
+  error: () => {},
 };
+
+// Test timeout configuration
+const timeout = 10000; // 10 seconds
+
+// Global test utilities
+global.testUtils = {
+  generateTestAddress: () => `0x${Math.random().toString(16).substr(2, 40)}`,
+  generateTestFileId: () => `test-file-${Date.now()}`,
+  waitFor: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+};
+
+// Cleanup after tests
+afterEach(() => {
+  // Clear any timers
+  if (global.gc) {
+    global.gc();
+  }
+});
+
+// Error handling for unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Error handling for uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});

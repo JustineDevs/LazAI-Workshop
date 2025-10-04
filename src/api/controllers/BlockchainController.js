@@ -3,8 +3,17 @@ const serviceManager = require('../services/ServiceManager');
 
 class BlockchainController {
     constructor() {
-        // Use shared service if available, otherwise create new instance
-        this.blockchainService = serviceManager.get('blockchain') || new (require('../services/BlockchainService'))();
+        // Always create a new instance to avoid timing issues
+        this.blockchainService = new (require('../services/BlockchainService'))();
+    }
+
+    /**
+     * Ensure the blockchain service is initialized
+     */
+    async ensureServiceInitialized() {
+        if (!this.blockchainService.isServiceInitialized()) {
+            await this.blockchainService.initialize();
+        }
     }
 
     /**
@@ -12,11 +21,7 @@ class BlockchainController {
      */
     async getNetworkInfo(req, res, next) {
         try {
-            // Ensure service is initialized
-            if (!this.blockchainService.isServiceInitialized()) {
-                await this.blockchainService.initialize();
-            }
-
+            await this.ensureServiceInitialized();
             const networkInfo = await this.blockchainService.getNetworkInfo();
 
             res.json({
@@ -34,6 +39,7 @@ class BlockchainController {
      */
     async getBalance(req, res, next) {
         try {
+            await this.ensureServiceInitialized();
             const { address } = req.params;
             const balance = await this.blockchainService.getWalletBalance(address);
 
@@ -56,11 +62,7 @@ class BlockchainController {
      */
     async getContractInfo(req, res, next) {
         try {
-            // Ensure service is initialized
-            if (!this.blockchainService.isServiceInitialized()) {
-                await this.blockchainService.initialize();
-            }
-
+            await this.ensureServiceInitialized();
             const contractInfo = await this.blockchainService.getContractInfo();
 
             res.json({
@@ -69,6 +71,7 @@ class BlockchainController {
             });
 
         } catch (error) {
+            console.error('Error in getContractInfo:', error);
             next(error);
         }
     }
@@ -78,6 +81,7 @@ class BlockchainController {
      */
     async getDataNFT(req, res, next) {
         try {
+            await this.ensureServiceInitialized();
             const { tokenId } = req.params;
             const dataNFT = await this.blockchainService.getDataNFT(tokenId);
 
@@ -96,6 +100,7 @@ class BlockchainController {
      */
     async checkOwnership(req, res, next) {
         try {
+            await this.ensureServiceInitialized();
             const { tokenId, address } = req.params;
             const isOwner = await this.blockchainService.isOwner(tokenId, address);
 
@@ -119,6 +124,7 @@ class BlockchainController {
      */
     async getTransaction(req, res, next) {
         try {
+            await this.ensureServiceInitialized();
             const { hash } = req.params;
 
             if (!/^0x[a-fA-F0-9]{64}$/.test(hash)) {
@@ -167,6 +173,7 @@ class BlockchainController {
      */
     async getBlock(req, res, next) {
         try {
+            await this.ensureServiceInitialized();
             const { number } = req.params;
             const blockNumber = parseInt(number);
 
@@ -213,6 +220,7 @@ class BlockchainController {
      */
     async getGasPrice(req, res, next) {
         try {
+            await this.ensureServiceInitialized();
             const provider = this.blockchainService.getProvider();
             const feeData = await provider.getFeeData();
 
@@ -237,6 +245,7 @@ class BlockchainController {
      */
     async estimateGas(req, res, next) {
         try {
+            await this.ensureServiceInitialized();
             const { to, data, value, from } = req.body;
 
             if (!to) {
