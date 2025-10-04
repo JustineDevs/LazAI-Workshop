@@ -103,27 +103,43 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
 
   // Contract addresses (these would come from environment variables in production)
   const CONTRACT_ADDRESSES = useMemo(() => ({
-    DataStreamNFT: process.env.NEXT_PUBLIC_DATASTREAM_NFT_ADDRESS || '0x1868C3935B5A548C90d5660981FB866160382Da7',
-    DataStreamDAT: process.env.NEXT_PUBLIC_DATASTREAM_DAT_ADDRESS || '0x1868C3935B5A548C90d5660981FB866160382Da7',
-    DATToken: process.env.NEXT_PUBLIC_DAT_TOKEN_ADDRESS || '0x...', // Not used for ETH payments
+    DataStreamNFT: process.env.NEXT_PUBLIC_DATASTREAM_NFT_ADDRESS || '0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0',
+    DataStreamDAT: process.env.NEXT_PUBLIC_DATASTREAM_DAT_ADDRESS || '0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512',
+    DATToken: process.env.NEXT_PUBLIC_DAT_TOKEN_ADDRESS || '0x5FbDB2315678afecb367f032d93F642f64180aa3',
   }), []);
 
   // Contract ABIs (updated for deployed contract)
   const CONTRACT_ABIS = useMemo(() => ({
     DataStreamNFT: [
-      "function mintDataNFT(string memory tokenURI, uint256 queryPriceInWei) external returns (uint256)",
-      "function payForQuery(uint256 tokenId) external payable",
+      "function mintDataNFT(string memory tokenURI, uint256 queryPriceInWei, string memory dataClass, string memory dataValue) external returns (uint256)",
+      "function payForQuery(uint256 tokenId, string memory query) external payable",
       "function updateQueryPrice(uint256 tokenId, uint256 newPriceInWei) external",
-      "function dataNFTs(uint256 tokenId) external view returns (address creator, uint256 queryPrice, uint256 totalQueries, uint256 totalEarned)",
+      "function getDataNFT(uint256 tokenId) external view returns (address creator, uint256 queryPrice, uint256 totalQueries, uint256 totalEarned, uint256 createdAt, bool isActive, string memory dataClass, string memory dataValue, string memory tokenURI)",
       "function ownerOf(uint256 tokenId) external view returns (address)",
       "function tokenURI(uint256 tokenId) external view returns (string memory)",
       "function name() external view returns (string memory)",
       "function symbol() external view returns (string memory)",
       "function platformTreasury() external view returns (address)",
       "function platformFeeBps() external view returns (uint256)",
-      "event DataNFTMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice)",
-      "event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount)",
-      "event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice)"
+      "function getCreatorTokens(address creator) external view returns (uint256[] memory)",
+      "function getCreatorEarnings(address creator) external view returns (uint256)",
+      "function getPlatformStats() external view returns (uint256 totalTokens, uint256 totalQueries, uint256 totalPlatformFeesCollected, uint256 totalCreatorEarningsPaid)",
+      "event DataNFTMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice, uint256 timestamp)",
+      "event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount, string query, uint256 timestamp)",
+      "event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice, uint256 timestamp)"
+    ],
+    DATToken: [
+      "function name() external view returns (string memory)",
+      "function symbol() external view returns (string memory)",
+      "function decimals() external view returns (uint8)",
+      "function totalSupply() external view returns (uint256)",
+      "function balanceOf(address account) external view returns (uint256)",
+      "function transfer(address to, uint256 amount) external returns (bool)",
+      "function allowance(address owner, address spender) external view returns (uint256)",
+      "function approve(address spender, uint256 amount) external returns (bool)",
+      "function transferFrom(address from, address to, uint256 amount) external returns (bool)",
+      "event Transfer(address indexed from, address indexed to, uint256 value)",
+      "event Approval(address indexed owner, address indexed spender, uint256 value)"
     ],
     DataStreamDAT: [
       "function mintDataDAT(string memory tokenURI, uint256 queryPriceInWei, string memory fileId, string memory dataClass, string memory dataValue) external returns (uint256)",
@@ -138,13 +154,6 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       "event DataDATMinted(uint256 indexed tokenId, address indexed creator, string uri, uint256 queryPrice, string fileId, string dataClass, string dataValue)",
       "event QueryPaid(uint256 indexed tokenId, address indexed payer, uint256 amount)",
       "event QueryPriceUpdated(uint256 indexed tokenId, uint256 newPrice)"
-    ],
-    DATToken: [
-      "function transfer(address to, uint256 amount) external returns (bool)",
-      "function transferFrom(address from, address to, uint256 amount) external returns (bool)",
-      "function approve(address spender, uint256 amount) external returns (bool)",
-      "function balanceOf(address account) external view returns (uint256)",
-      "function allowance(address owner, address spender) external view returns (uint256)"
     ]
   }), []);
 
@@ -218,18 +227,31 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
       const ethBalance = await provider.getBalance(address);
       setBalance(ethers.formatEther(ethBalance));
 
-      // Get DAT token balance
-      if (CONTRACT_ADDRESSES.DATToken && CONTRACT_ADDRESSES.DATToken !== '0x...') {
-        const datTokenContract = new ethers.Contract(
-          CONTRACT_ADDRESSES.DATToken,
-          CONTRACT_ABIS.DATToken,
-          provider
-        );
-        const datBalance = await datTokenContract.balanceOf(address);
-        setDatBalance(ethers.formatEther(datBalance));
+      // Get DAT token balance - with error handling
+      if (CONTRACT_ADDRESSES.DATToken && 
+          CONTRACT_ADDRESSES.DATToken !== '0x...' && 
+          CONTRACT_ADDRESSES.DATToken !== '0x0000000000000000000000000000000000000000') {
+        try {
+          const datTokenContract = new ethers.Contract(
+            CONTRACT_ADDRESSES.DATToken,
+            CONTRACT_ABIS.DATToken,
+            provider
+          );
+          const datBalance = await datTokenContract.balanceOf(address);
+          setDatBalance(ethers.formatEther(datBalance));
+        } catch (contractError) {
+          console.warn('DAT Token contract not available:', contractError.message);
+          setDatBalance('0.0');
+        }
+      } else {
+        console.log('Using mock DAT balance (contracts not deployed)');
+        setDatBalance('1000.0'); // Mock balance for development
       }
     } catch (error) {
       console.error('Error updating balances:', error);
+      // Set fallback values
+      setBalance('0.0');
+      setDatBalance('0.0');
     }
   }, [CONTRACT_ADDRESSES.DATToken, CONTRACT_ABIS.DATToken]);
 
@@ -409,6 +431,11 @@ export const Web3Provider = ({ children }: Web3ProviderProps) => {
           setAccount(address);
           setChainId(Number(network.chainId));
           setIsConnected(true);
+
+          // Check if we're on the right network
+          if (Number(network.chainId) !== 133718) {
+            console.warn('Please switch to LazAI Testnet (Chain ID: 133718)');
+          }
 
           await updateBalances(provider, address);
         } catch (error) {

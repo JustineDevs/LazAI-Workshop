@@ -3,13 +3,19 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# Environment variables
+# Environment variables (CRITICAL - NEVER COMMIT)
 .env
+.env.*
+!.env.example
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env.staging
+.env.development
+.env.production
 
 # Logs
 logs/
@@ -118,10 +124,14 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Hardhat files
+# Hardhat files (CRITICAL - NEVER COMMIT)
 cache/
 artifacts/
 deployments/
+typechain/
+typechain-types/
+coverage.json
+gas-report.txt
 
 # Solidity files
 *.sol.bak
@@ -143,9 +153,9 @@ dist/
 *.bak
 *.backup
 
-# Lock files
-package-lock.json
-yarn.lock
+# Lock files (COMMIT THESE - Important for dependency management)
+# package-lock.json
+# yarn.lock
 
 # IDE files
 *.sublime-project
@@ -165,6 +175,80 @@ generated/
 query-smart-contract/
 rules/
 
+# =============================================================================
+# SENSITIVE DATA & API KEYS (CRITICAL - NEVER COMMIT)
+# =============================================================================
+
+# API Keys and Secrets
+**/api-keys.json
+**/secrets.json
+**/credentials.json
+**/config.json
+**/keys.json
+**/tokens.json
+
+# Private Keys and Wallets
+**/private-keys/
+**/wallets/
+**/*.key
+**/*.pem
+**/*.p12
+**/*.pfx
+**/keystore/
+**/wallet.json
+**/mnemonic.txt
+
+# Database credentials
+**/database.json
+**/db-config.json
+**/mongo-config.json
+
+# =============================================================================
+# BLOCKCHAIN & CRYPTO (CRITICAL - NEVER COMMIT)
+# =============================================================================
+
+# Private keys and mnemonics
+**/private-key.txt
+**/mnemonic.txt
+**/seed-phrase.txt
+**/wallet-seed.txt
+**/recovery-phrase.txt
+
+# Wallet files
+**/wallet.json
+**/keystore/
+**/accounts/
+**/addresses.txt
+
+# Transaction data
+**/transactions.json
+**/tx-history.json
+**/deployment-keys.json
+
+# =============================================================================
+# AI SERVICE & EXTERNAL APIS (CRITICAL - NEVER COMMIT)
+# =============================================================================
+
+# AI Service credentials
+ai-service/.env
+ai-service/venv/
+ai-service/__pycache__/
+ai-service/*.pyc
+ai-service/*.pyo
+ai-service/*.pyd
+ai-service/.Python
+
+# API Keys
+**/openai-key.txt
+**/gemini-key.txt
+**/claude-key.txt
+**/anthropic-key.txt
+**/api-keys.env
+
+# =============================================================================
+# LAZAI INTEGRATION (CRITICAL - NEVER COMMIT)
+# =============================================================================
+
 # LazAI Integration
 lazai-integration/venv/
 lazai-integration/__pycache__/
@@ -175,3 +259,147 @@ lazai-integration/.Python
 lazai-integration/file_id.txt
 lazai-integration/dat_results.json
 lazai-integration/.env
+
+# =============================================================================
+# DEPLOYMENT & PRODUCTION (CRITICAL - NEVER COMMIT)
+# =============================================================================
+
+# Deployment configurations
+**/deployment-config.json
+**/production-config.json
+**/staging-config.json
+**/server-config.json
+
+# SSL certificates
+**/*.crt
+**/*.cert
+**/*.pem
+**/*.key
+**/ssl/
+**/certs/
+
+# Docker secrets
+**/docker-compose.override.yml
+**/docker-secrets/
+
+# =============================================================================
+# DEVELOPMENT & TESTING (SAFE TO COMMIT)
+# =============================================================================
+
+# Test data (safe)
+**/test-data/
+**/mock-data/
+**/sample-data/
+
+# Development configurations (safe)
+**/dev-config.json
+**/local-config.json
+
+# =============================================================================
+# PROJECT-SPECIFIC EXCLUSIONS
+# =============================================================================
+
+# Smart Contract Build Artifacts
+smc/artifacts/
+smc/cache/
+smc/deployments/
+smc/typechain/
+smc/typechain-types/
+
+# Frontend Build Artifacts
+fe/.next/
+fe/out/
+fe/build/
+fe/dist/
+
+# Backend Build Artifacts
+be/build/
+be/dist/
+be/logs/
+
+# AI Service Build Artifacts
+ai-service/__pycache__/
+ai-service/*.pyc
+ai-service/*.pyo
+ai-service/*.pyd
+ai-service/.Python
+ai-service/venv/
+ai-service/.venv/
+
+# Configuration Files (Keep examples, exclude actual configs)
+config/.env
+config/local.json
+config/production.json
+config/staging.json
+
+# Deployment Scripts Output
+scripts/output/
+scripts/logs/
+scripts/temp/
+
+# Test Results
+test-results/
+coverage/
+*.coverage
+.coverage
+.pytest_cache/
+
+# IDE and Editor Files
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+.idea/shelf/
+
+# OS Specific Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporary Files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.#*
+
+# Log Files
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime Files
+*.pid
+*.seed
+*.pid.lock
+
+# =============================================================================
+# SECURITY REMINDERS
+# =============================================================================
+
+# NEVER COMMIT:
+# - Private keys or mnemonics
+# - API keys or secrets
+# - Database credentials
+# - Production configurations
+# - Wallet files
+# - SSL certificates
+# - Any file containing sensitive data
+
+# ALWAYS COMMIT:
+# - .env.example files
+# - package.json and package-lock.json
+# - README.md and documentation
+# - Source code (without secrets)
+# - Configuration templates

@@ -15,6 +15,10 @@ interface QueryResult {
   duration?: number;
   queryId?: string;
   error?: string;
+  confidence?: number;
+  cost?: string;
+  processingTime?: number;
+  transactionHash?: string;
 }
 
 interface EnhancedQueryInterfaceProps {
@@ -30,15 +34,17 @@ export default function EnhancedQueryInterface({
 }: EnhancedQueryInterfaceProps) {
   const { account, isConnected, signMessage } = useWeb3();
   const [query, setQuery] = useState('');
-  const [selectedProvider, setSelectedProvider] = useState('openai');
-  const [selectedModel, setSelectedModel] = useState('gpt-4');
+  const [selectedProvider, setSelectedProvider] = useState('gemini');
+  const [selectedModel, setSelectedModel] = useState('gemini-pro');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<QueryResult[]>([]);
 
   const providers = [
-    { name: 'openai', displayName: 'OpenAI', models: ['gpt-4', 'gpt-3.5-turbo'], isActive: true },
-    { name: 'gemini', displayName: 'Google Gemini', models: ['gemini-pro'], isActive: true },
-    { name: 'groq', displayName: 'Groq', models: ['llama2-70b', 'mixtral-8x7b'], isActive: true }
+    { name: 'gemini', displayName: 'Gemini Pro (Free Tier)', models: ['gemini-pro'], isActive: true },
+    { name: 'gpt-4o', displayName: 'GPT-4o', models: ['gpt-4o'], isActive: true },
+    { name: 'lm-studio', displayName: 'LM Studio (Local)', models: ['local-model'], isActive: true },
+    { name: 'claude', displayName: 'Claude (Paid)', models: ['claude-3-sonnet'], isActive: false },
+    { name: 'mock', displayName: 'Mock AI', models: ['mock'], isActive: true }
   ];
 
   const handleQuery = async () => {
@@ -54,14 +60,53 @@ export default function EnhancedQueryInterface({
       const message = `DataStreamNFT Query: ${tokenId} - ${query} (${Date.now()})`;
       await signMessage(message);
 
-      // Simulate query processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Try AI service first, fallback to mock
+      try {
+        const response = await fetch('http://localhost:5000/infer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            tokenId,
+            query,
+            model: selectedProvider,
+            wallet: account
+          }),
+        });
 
+        const result = await response.json();
+        
+        if (result.success) {
+          const queryResult: QueryResult = {
+            success: true,
+            result: result.data.result,
+            provider: selectedProvider,
+            model: result.data.model,
+            confidence: result.data.confidence,
+            cost: result.data.cost,
+            processingTime: result.data.processingTime,
+            transactionHash: result.data.transactionHash,
+            duration: result.data.processingTime
+          };
+          
+          setResults(prev => [queryResult, ...prev]);
+          onQueryComplete?.(queryResult);
+          return;
+        }
+      } catch (aiError) {
+        console.log('AI service not available, using mock response');
+      }
+
+      // Fallback to mock response
       const result: QueryResult = {
         success: true,
-        result: `This is a simulated response for your query: "${query}". The AI has processed your request and provided this response based on the data associated with token ${tokenId}.`,
+        result: `AI Analysis for: "${query}"\n\nBased on the dataset associated with token ${tokenId}, here's a comprehensive analysis:\n\n1. Data Quality: High\n2. Relevance Score: 85%\n3. Key Insights: The data shows significant patterns that suggest...\n4. Recommendations: Consider further analysis in areas...\n\nThis is a mock response for development purposes.`,
         provider: selectedProvider,
-        model: selectedModel,
+        model: selectedProvider,
+        confidence: 0.85,
+        cost: '0.001',
+        processingTime: 2000,
         duration: 2000
       };
       

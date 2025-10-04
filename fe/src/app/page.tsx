@@ -172,7 +172,7 @@ export default function HomePage() {
         {activeTab === 'query' && <QueryTab selectedTokenId={selectedTokenId} onQueryComplete={handleQueryComplete} onError={handleError} />}
         {activeTab === 'dashboard' && <DashboardPage />}
       </main>
-
+      
       {/* Modals */}
       {showOnboarding && (
         <OnboardingFlow
